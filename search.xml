@@ -5,8 +5,8 @@
     
     <entry>
       <title>测试博客文章</title>
-      <link href="/Claudia-theme-blog/2021/07/08/%E6%B5%8B%E8%AF%95%E6%96%87%E7%AB%A0/"/>
-      <url>/Claudia-theme-blog/2021/07/08/%E6%B5%8B%E8%AF%95%E6%96%87%E7%AB%A0/</url>
+      <link href="2021/07/08/%E6%B5%8B%E8%AF%95%E6%96%87%E7%AB%A0/"/>
+      <url>2021/07/08/%E6%B5%8B%E8%AF%95%E6%96%87%E7%AB%A0/</url>
       
         <content type="html"><![CDATA[<p>测试一下图片</p><p><img src="https://gitee.com/KitTsai/pic/raw/master/images//tree.png" alt="覆盖"></p><blockquote><p>11111</p><blockquote><p>22222</p><blockquote><p>33333</p></blockquote></blockquote></blockquote><pre><code class="java">System.out.println(&quot;Hello world&quot;);System.out.println(&quot;Hello world&quot;);System.out.println(&quot;Hello world&quot;);System.out.println(&quot;Hello world&quot;);</code></pre><ul><li>1</li><li>2</li><li>3</li></ul>]]></content>
       
