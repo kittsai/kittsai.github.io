@@ -11,7 +11,7 @@ hero:
       link: /books/
     - theme: alt
       text: ⭐ GitHub
-      link: https://github.com/kittsai/kit-docs
+      link: https://github.com/kittsai/kittsai.github.io
 ---
 
 <FeatureCards />
