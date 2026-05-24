@@ -4,6 +4,9 @@ export default defineConfig({
   base: "/",
   title: "kit-docs",
   description: "你的技术文档站",
+  head: [
+    ['link', { rel: 'icon', href: '/favicon.png' }],
+  ],
   themeConfig: {
     outline: {
       level: [1, 6],
@@ -47,6 +50,10 @@ export default defineConfig({
             {
               text: "Java集合",
               link: "/knowledges/Java/Java集合",
+            },
+            {
+              text: "Java并发",
+              link: "/knowledges/Java/Java并发",
             },
           ],
         },
