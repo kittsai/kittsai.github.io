@@ -115,9 +115,112 @@ synchronized用法：
 PS：只有包含final字段的构造方法，才会插入StoreStore屏障。
 
 # AQS
+AQS，全称AbstractQueuedSynchronizer，是一个抽象的、基于FIFO等待队列的、用一个volatile ine表示同步状态的框架。
 
+AQS解决的问题是：把线程如何安全地排队、阻塞、唤醒等这些复杂且容易出错的操作封装起来，让开发者只需关心何时加锁、何时释放的上层逻辑。
 
+AQS使用模板方法模式定义：
+- 线程如何安全地入队、出队。
+- 如何用LockSupport.park/unpark挂起和唤醒线程。
+- 如何处理中断和超时。
 
+AQS数据结构：
+- 状态变量state：表示同步状态，可以是重入锁或许可证。
+- FIFO等待队列：一个由Node节点构成的双向链表，头节点表示当前持有锁或正在获取锁的线程。
+- 等待状态waitStatus：每个Node节点有一个waitStatus。
+	- SIGNAL（-1）：表示后继节点需要被唤醒。当前节点释放锁时，必须检查并unpark后继节点。
+	- CANCELLED（1）：节点因超时或中断被取消。
+
+AQS的两种获取锁模式：
+- 独占模式：
+	- 核心特征：同一时刻**只有一个线程**能成功获取资源。
+	- 典型实现：ReentrantLock。
+	- 状态变量state含义：锁支持次数（0=空闲，1=持有，>1=重入）。
+
+![AQS独占模式](./images/AQS独占模式.png)
+
+- 共享模式：
+	- 核心特征：同一时刻**多个线程**可以同时成功获取资源。
+	- 典型实现：Semaphore、CountDownLatch。
+	- 状态变量state含义：剩余许可证/资源数量。
+
+![AQS共享模式](./images/AQS共享模式.png)
+
+ReentrantLock、Semaphore、CountDownLatch等都是基于AQS实现的。
+
+## ReentrantLock
+
+> [!NOTE] 锁模式
+> 独占模式
+
+ReentrantLock是一个可重入的互斥锁，内部有一个继承自AQS的`Sync`，并分为`公平锁`和`非公平锁`两种实现。
+
+加锁逻辑：
+- lock()：调用acquire(1)
+- tryAcquire(1)：
+	- 若state等于0，则CAS获取锁，成功则设为锁持有者。
+	- 若当前线程已是持有者，则state+1，表示重入。
+	- 若CAS失败，则进入等待队列。
+
+解锁逻辑：
+- unlock()：调用release(1)
+- tryRelease(1)：state-1，若state清零，则释放锁，并唤醒后继节点。
+
+两种锁实现：
+- 公平锁：先检查队列里有没有线程在等，有就乖乖排队。
+- 非公平锁：一上来就CAS抢锁，不看队列里有没有线程排队。
+
+## Semaphore
+
+> [!NOTE] 锁模式
+> 共享模式
+
+Semaphore是信号量，将state表示为**剩余许可证数量**，来控制多个线程访问资源。
+
+加锁逻辑：
+- acquire()：调用acquireSharedInterruptibly(1)
+- tryAcquireShared(1)：
+	- 若state大于0，CAS更新state-1，表示当前线程获取一个许可。
+	- 若state小于0，返回负数，进入等待队列。
+
+解锁逻辑：
+- release()：调用releaseShared(1)
+- tryReleaseShared(1)：CAS更新state+1，表示归还一个许可。
+
+若剩余许可证数量大于0，AQS会自动唤醒下一个等待的线程，直到许可证为0。
+
+## CountDownLatch
+
+> [!NOTE] 锁模式
+> 共享模式
+
+CountDownLatch是倒计时门闩，将state表示为**还需等待的事件数量**，是一个**一次性的共享模式实现**。
+
+加锁逻辑：
+- await()：调用acquireSharedInterruptibly(1)
+- tryAcquireShared(1)：
+	- 若state等于0，直接放行。
+	- 若state大于0，则进入等待队列。
+
+解锁逻辑：
+- countDown()：调用releaseShared(1)
+- tryReleaseShared(1)：CAS更新state-1，当state等于0，释放锁成功，并触发唤醒。
+
+Semaphore和CountDownLatch的关键区别：
+- Semaphore：state可复用。
+- CountDownLatch：state是一次性的，当state等于0，所有等待线程被唤醒，门闩永久打开。
+
+## AQS实现比对
+| 特性           | ReentrantLock          | Semaphore               | CountDownLatch            |
+| ------------ | ---------------------- | ----------------------- | ------------------------- |
+| **模式**       | 独占                     | 共享                      | 共享                        |
+| **state 含义** | 锁持有次数                  | 剩余许可证数                  | 还需等待的事件数                  |
+| **获取**       | `lock()` → state 0→1   | `acquire()` → state 减 N | `await()` → 等 state==0    |
+| **释放**       | `unlock()` → state 减 1 | `release()` → state 加 1 | `countDown()` → state 减 1 |
+| **可重入**      | ✅                      | ❌                       | ❌                         |
+| **锁支持**      | 公平锁/非公平锁               | 公平锁/非公平锁                | ❌无此概念                     |
+| **复用性**      | 可复用                    | 可复用                     | 一次性                       |
+| **唤醒传播**     | 无（独占）                  | 有（共享）                   | 有（共享，到 0 时）               |
 
 # ThreadLocal
 
