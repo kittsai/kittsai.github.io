@@ -153,7 +153,7 @@ ReentrantLock、Semaphore、CountDownLatch等都是基于AQS实现的。
 > [!NOTE] 锁模式
 > 独占模式
 
-ReentrantLock是一个可重入的互斥锁，内部有一个继承自AQS的`Sync`，并分为`公平锁`和`非公平锁`两种实现。
+ReentrantLock是一个可重入的互斥锁，内部有一个继承自AQS的`Sync`，并分为`公平锁`和`非公平锁`两种实现，默认为实现为`非公平锁`。
 
 加锁逻辑：
 - lock()：调用acquire(1)
@@ -175,7 +175,7 @@ ReentrantLock是一个可重入的互斥锁，内部有一个继承自AQS的`Syn
 > [!NOTE] 锁模式
 > 共享模式
 
-Semaphore是信号量，将state表示为**剩余许可证数量**，来控制多个线程访问资源。
+Semaphore是信号量，将state表示为**剩余许可证数量**，来控制多个线程访问资源。内部有一个继承自AQS的`Sync`，并分为`公平锁`和`非公平锁`两种实现，默认为实现为`非公平锁`。
 
 加锁逻辑：
 - acquire()：调用acquireSharedInterruptibly(1)
