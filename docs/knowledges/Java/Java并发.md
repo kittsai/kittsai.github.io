@@ -223,13 +223,127 @@ Semaphore和CountDownLatch的关键区别：
 | **唤醒传播**     | 无（独占）                  | 有（共享）                   | 有（共享，到 0 时）               |
 
 # ThreadLocal
+ThreadLocal是一个线程级别的隔离工具。每个线程有一份独立的存储，可以避免线程间的数据共享和竞争。
 
+核心原理：每个Thread对象有一个ThreadLocalMap。ThreadLocalMap是一个哈希表，key为ThreadLocal对象（弱引用），value为需要存储的值。
+
+key为什么设计为弱引用？
+为了在ThreadLocal对象失去外部引用后，key可以被GC回收。这样ThreadLocalMap里的key为null，但value还被强引用。所以必须通过remove来清理，防止内存泄漏。
 
 # 线程池
 
+线程池是一种**池化资源技术**，它预先创建一定数量的线程，放入"池子"中。当有任务需要执行时，从池子里取一个线程来执行，任务执行完成后线程不会销毁，而是返回池子等待下一个任务。
+
+为什么需要线程池？
+- 降低资源消耗：避免频繁创建、销毁线程的开销。
+- 提高响应速度：任务到达时，无需等待线程创建就可以立即执行。
+- 提高线程的可管理性：可以统一分配、调优和监控线程的数量和状态。
+
+## ThreadPoolExecutor
+```java
+public ThreadPoolExecutor(int corePoolSize,
+                          int maximumPoolSize,
+                          long keepAliveTime,
+                          TimeUnit unit,
+                          BlockingQueue<Runnable> workQueue,
+                          ThreadFactory threadFactory,
+                          RejectedExecutionHandler handler)
+```
+ThreadPoolExecutor是线程池的核心实现类，提供了以下参数：
+- corePoolSize：核心线程数，即使空闲也不会回收。
+- maximumPoolSize：线程池允许的最大线程数。
+- keepAliveTime：当线程池大于核心线程数时，多余空闲线程的存活时间。
+- unit：存活时间的单位。
+- workQueue：线程等待队列。
+- threadFactory：线程工厂，可以自定义线程名称。
+- handler：拒绝策略，当队列满且达到最大线程数时，拒绝线程的策略。
+
+## 线程池执行流程
+- 若 **当前线程数 < 核心线程数**，则创建核心线程执行。
+- 若 **当前线程数 = 核心线程数**，且队列未满，则将线程放入等待队列。
+- 若 **队列已满，但当前线程数 < 最大线程数**，则创建非核心线程执行。
+- 若 **队列已满，且当前线程数 >= 最大线程数**，则执行拒绝策略。
+
+核心线程数是常驻线程，最大线程数是临时的救急线程。
+
+## Executors
+**Executors**是JUC包中的一个线程池工厂类，用于快速创建**ExecutorService**实例。
+
+Executors默认提供了几个工厂方法：
+- newFixedThreadPool：
+	- 线程池介绍：固定大小的线程池。
+	- 核心线程数：指定大小。
+	- 最大线程数：指定大小。
+	- 等待时间：0
+	- 等待队列：无界队列LinkedBlockingQueue。
+- newCachedThreadPool
+	- 线程池介绍：缓存线程池。
+	- 核心线程数：0。
+	- 最大线程数：无限大。
+	- 等待时间：60s。
+	- 等待队列：无容量队列SynchronousQueue。
+- newSingleThreadExecutor：
+	- 线程池介绍：单个线程的线程池。
+	- 核心线程数：1。
+	- 最大线程数：1。
+	- 等待时间：0。
+	- 等待队列：无界队列LinkedBlockingQueue。
+- newScheduledThreadPool：
+	- 线程池介绍：定时调度线程池。
+	- 核心线程数：指定大小。
+	- 最大线程数：无限大。
+	- 等待时间：10s。
+	- 等待队列：延迟队列DelayedWorkQueue。
+
+《阿里巴巴 Java 开发手册》规定：**不允许使用 `Executors` 创建线程池，必须通过 `ThreadPoolExecutor` 手动创建**。
+使用默认线程池工厂方法的风险：
+- OOM：等待队列无限大，可能发生OOM。
+- 资源耗尽：最大线程数无限大，可能导致资源耗尽。
+
+## 等待队列
+
+线程池使用的队列全部来自 java.util.concurrent.BlockingQueue接口的实现：
+- ArrayBlockingQueue：数组阻塞队列，有界，必须指定容量。
+- LinkedBlockingQueue：线性阻塞队列，默认无界，可指定有界。
+- SynchronousQueue：同步阻塞队列，无容量，直接提交。
+- PriorityBlockingQueue：优先级阻塞队列，无界，按优先级提交。
+- DelayedWorkQueue：延迟阻塞队列，无界，延迟提交。
+
+ArrayBlockingQueue和LinkedBlockingQueue的区别：
+- 内存占用控制：ArrayBlockingQueue的内存占用更可控一些，可以指定大小，避免任务堆积。
+- 吞吐量：ArrayBlockingQueue使用单锁，LinkedBlockingQueue：双锁，吞吐量高。
+- 灵活性：对任务量变化较大的应用场景，LinkedBlockingQueue更灵活。
+
+## 拒绝策略
+当队列已满且达到最大线程数时，触发拒绝策略。
+
+拒绝策略：
+- AbortPolicy：默认拒绝策略，直接抛出RejectedExecutionException异常，需要处理异常。
+- CallerRunsPolicy：由调用者执行任务。
+- DiscardPolicy：直接丢弃新任务，不会抛出异常。
+- DiscardOldestPolicy：丢弃队列中最老的任务。
+
+## 线程池配置最佳实践
+
+- CPU密集型任务：以计算为主，线程数 = CPU核心数 + 1。
+- IO密集型任务：大量阻塞等待，线程数 = CPU核心数 * 2，或更精准的计算方式：CPU核心数 * （1+平均等待时间/平均计算时间）。
+
+# 线程生命周期
+- NEW：线程刚创建，尚未启动。
+- RUNNABLE：可运行状态（包含等待调度和已抢占到时间片两种情况）。
+- BLOCKED：获取锁被阻塞，仅限synchronized锁。
+- WAITING：无限期等待直到被唤醒。常见如：ReentrantLock使用LockSupport.park()来阻塞线程、wait()、join()。
+- TIMED_WAITING：限时等待，超时自动返回。
+- TERMINATED：线程执行完毕或异常退出。
+
+![线程生命周期](./images/线程生命周期.png)
+
+## 原子类
 
 
 # FAQ
+
+## run方法和start方法的区别？
 
 ---
 
