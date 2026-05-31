@@ -55,6 +55,10 @@ export default defineConfig({
               text: "Java并发",
               link: "/knowledges/Java/Java并发",
             },
+            {
+              text: "JVM",
+              link: "/knowledges/Java/JVM",
+            },
           ],
         },
       ],
