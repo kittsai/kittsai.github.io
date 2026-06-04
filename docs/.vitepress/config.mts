@@ -1,6 +1,7 @@
 import { defineConfig } from "vitepress";
+import { withMermaid } from "vitepress-plugin-mermaid";
 
-export default defineConfig({
+export default withMermaid(defineConfig({
   base: "/",
   title: "kit-docs",
   description: "你的技术文档站",
@@ -59,10 +60,14 @@ export default defineConfig({
               text: "JVM",
               link: "/knowledges/Java/JVM",
             },
+            {
+              text: "Spring",
+              link: "/knowledges/Java/Spring",
+            },
           ],
         },
       ],
     },
     socialLinks: [{ icon: "github", link: "https://github.com/kittsai/kittsai.github.io" }],
   },
-});
+}));
