@@ -158,7 +158,204 @@ flowchart TD
 ```
 
 
-## 面向切面编程
+### Bean的生命周期
+
+1. **加载BeanDefinition** —— 扫描Bean，注册为BeanDefinition
+2. **实例化** —— 反射/工厂方法创建原始对象（构造器注入在这里完成）
+3. **属性填充** —— 给 `@Autowired`、`@Value` 字段赋值（三级缓存解决循环依赖）
+4. **Aware 回调** —— 让 Bean 感知自己的名字、容器等
+5. **前置处理** —— `@PostConstruct` 在这里执行
+6. **初始化** —— `InitializingBean` 和 `init-method`
+7. **后置处理** —— **AOP 代理在这里生成**（事务、切面都在这时生效）
+8. **放入单例池** —— Bean 可以被正常使用
+9. **销毁** —— `@PreDestroy` 和 `destroy-method` 收尾
+
+![Spring Bean生命周期](./images/Spring-Bean生命周期.png)
+
+
+# 面向切面编程
+
+在OOP中，通常按业务划分出不同的类，但总有一些公共逻辑散落在各个类中。比如：日志记录、事务管理等。
+这些逻辑叫做**横切关注点**。横切逻辑与业务代码紧密耦合，会导致代码重复、难以维护等问题。AOP通过将这些横切逻辑模块化为独立的**切面**，在不修改业务代码的情况下，将横切逻辑**动态织入**到指定的连接点，保持业务代码的纯粹。
+
+AOP核心术语：
+- 连接点：程序执行过程中可以插入额外逻辑的点。每个类的每个方法都是一个连接点。
+- 切点：匹配需要操作的连接点的条件，决定**在哪些位置**做额外逻辑。
+- 通知：在匹配的连接点上要执行的额外逻辑，做什么、何时做。
+	- 前置通知（Before）：方法执行**之前做**。
+	- 后置通知（After）：方法执行**之后做**。无论成功还是异常都会执行。
+	- 返回通知（AfterReturning）：仅在方法正常返回时执行，可以拿到返回值。
+	- 异常通知（AfterThrowing）：仅在方法抛出异常时执行，可以拿到异常对象。
+	- 环绕通知（Around）：包裹整个方法调用，可控制是否执行目标方法、以及修改返回值。
+- 切面：通知+切点的组合，是横切逻辑的完整模块。
+- 目标对象：被通知的真正业务对象。
+- 织入：将切面应用到目标对象，并创建代理对象的过程。
+
+## Spring AOP原理
+
+> [!NOTE] 原理
+> 动态代理
+
+Spring AOP基于**动态代理**实现，常见动态代理方式：
+- JDK动态代理：要求目标类至少实现一个接口，通过反射在运行时动态生成代理类的字节码，这个代理类实现了目标类的所有接口，但并非目标类的子类。所有方法调用都会被转发到一个`InvocationHandler`上。
+- CGLIB代理：对目标类无要求，CGLIB使用ASM字节码框架，生成目标类的子类，重写父类中允许重写的方法，在子类中插入拦截逻辑，以实现代理目的。
+
+激活Spring AOP的入口是注解 `@EnableAspectJAutoProxy`，该注解通过`@Import(AspectJAutoProxyRegistrar.class)`向容器注册了一个后处理器：**`AnnotationAwareAspectJAutoProxyCreator`**，是Spring AOP的核心引擎，做了两件事：
+- 收集切面：找到容器中所有@AspeceJ标注的类，并解析为一组Advisor。
+- 创建代理：在Bean初始化完成后，检查是否需要代理，需要时动态生成代理对象。
+
+核心设计思路：
+- 用`@AspectJ`声明切面，用`@Before`、`@After`等声明通知，用切点表达式定义拦截位置。
+- Spring容器自动发现这些切面，并将它们解析为一组`Advisor`。
+- 在Bean创建过程中，Spring会检查每个Bean是否需要被某个Advisor匹配，如果需要则创建代理对象。
+- 代理对象在方法调用时，将根据匹配的Advisor生成拦截器链（**MethodInterceptor**），通过递归调用的**责任链模式**执行通知逻辑。
+	- 正常返回：Around前部->Before->目标方法->AfterReturning->After->Around后部
+	- 异常情况：Around前部->Before->目标方法->AfterThrowing->After->Around后部
+
+在Spring AOP中，任何横切逻辑最终都会变成一个`MethodInterceptor`，在具体执行时，通过递归+责任链模式执行。
+
+## 事务管理
+
+事务的四大特性（ACID）：
+- 原子性（Atomicity）：要么全做，要么全不做。
+- 一致性（Consistency）：事务前后数据完整性不变。
+- 隔离性（Isolation）：并发事务互不干扰。
+- 持久性（Durability）：提交后数据永久保存。
+
+Spring不直接管理数据库事务，而是提供统一的抽象层。
+
+核心接口关系：
+- `PlatformTransactionManager`：事务管理器，不同数据库有不同的实现，如DataSourceTransactionManager、JpaTransactionManager等。
+- `TransactionDefinition`：事务定义，包括隔离级别、传播行为、超时等。
+- `TransactionStatus`：事务状态
+
+![PlatformTransactionManager](./images/Spring事务-PlatformTransactionManager.png)
+
+![TransactionDefinition](./images/Spring事务-TransactionDefinition.png)
+
+![TransactionStatus](./images/Spring事务-TransactionStatus.png)
+
+事务管理的两种方式：
+- 声明式事务：`@Transactional` + AOP
+- 编程式事务：使用TransactionTemplate、PlatformTransactionManager调用
+
+### 声明式事务原理
+
+通过注解`@EnableTransactionManagement`开启事务，该注解包含两个核心组件：
+- AutoProxyRegistrar：注册InfrastructureAdvisorAutoProxyCreator，用于遍历Advisor。
+- ProxyTransactionManagementConfiguration：生成事务Advisor。
+	- **TransactionInterceptor**：事务逻辑的真正执行者（实现了MethodInterceptor接口），它持有负责解析事务注解的`TransactionAttributeSource`和事务管理器`PlatformTransactionManager`。
+	- BeanFactoryTransactionAttributeSourceAdvisor：事务Advisor。
+
+当Bean初始化完成，属性填充之后，InfrastructureAdvisorAutoProxyCreator会遍历所有Advisor，匹配到使用@Transactional注解的方法，并创建代理完成织入。
+
+当代理对象被调用时，TransactionInterceptor被触发，大致处理流程如下：
+- 获取事务属性
+- 获取事务管理器
+- 开启事务
+- 调用目标方法
+- 提交事务，异常时回滚
+- 清理事务
+
+### 事务传播行为
+
+想象你是一个项目经理（调用方），你分配给下属一个任务（调用事务方法）。现在有两种情况：
+- 你手里已经有一个正在进行的项目（当前有事务）
+- 你手里没有项目（当前无事务）
+传播行为就是：下属接到任务后，是加入你的项目一起干，还是自己单开一个新项目，还是直接拒绝？
+
+七种传播行为可以分为四组：**一起干、单干、拒绝、特殊**。
+
+第一组：一起干（加入或新建）
+
+| 传播行为             | 当前有事务  | 当前无事务   | 类比                  |
+| ---------------- | ------ | ------- | ------------------- |
+| **REQUIRED**（默认） | 加入你的项目 | 自己开项目   | 好员工，有活就跟着干，没活自己牵头干  |
+| **SUPPORTS**     | 加入你的项目 | 不干（无事务） | 支持型员工，有项目就参与，没项目就裸奔 |
+| **MANDATORY**    | 加入你的项目 | 直接摔门走人  | 必须型员工，没项目？这活没法干     |
+
+**记忆口诀**：
+- REQUIRED：**必须有**（自己或别人有都行）
+- SUPPORTS：**可以有**（有就参与，没有拉倒）
+- MANDATORY：**必须有你的**（必须是别人开的）
+
+第二组：单干（自己开新项目）
+
+| 传播行为              | 当前有事务         | 当前无事务 | 类比                  |
+| ----------------- | ------------- | ----- | ------------------- |
+| **REQUIRES_NEW**  | 挂起你的项目，自己开新项目 | 自己开项目 | 独立员工，不管你在干嘛，我都要另起炉灶 |
+| **NOT_SUPPORTED** | 挂起你的项目，自己裸跑   | 自己裸跑  | 佛系员工，我讨厌事务，有也当没有    |
+| **NEVER**         | 直接摔门走人        | 自己裸跑  | 事务洁癖，有事务就炸          |
+
+**记忆口诀**：
+- REQUIRES_NEW：**必须新的**（每次都新建，旧的挂起）
+- NOT_SUPPORTED：**不支持**（不管你支不支持，我不支持）
+- NEVER：**绝对不要**（有事务就报错）
+
+第三组：特殊模式
+
+| 传播行为          | 当前有事务       | 当前无事务 | 类比                                |
+| ------------- | ----------- | ----- | --------------------------------- |
+| **NESTED**    | 嵌套子事务（保存点） | 自己开项目 | 子任务，父项目失败全完蛋，自己失败父项目可继续 |
+
+**记忆要点**：NESTED 和 REQUIRES_NEW 最容易混淆：
+- REQUIRES_NEW：两个项目完全独立，互相不影响。
+- NESTED：父子关系，父亲回滚儿子必回滚，儿子回滚父亲不受影响。
+
+一幅记忆逻辑图：
+```text
+接到任务，当前有事务吗？
+├── 有事务
+│   ├── 加入你：REQUIRED / SUPPORTS / MANDATORY
+│   │   └── MANDATORY：必须加入，否则不让干
+│   ├── 单开：REQUIRES_NEW（挂起你的）
+│   ├── 裸奔：NOT_SUPPORTED（挂起你的）
+│   ├── 报错：NEVER（事务洁癖）
+│   └── 嵌套：NESTED（父子关系）
+└── 无事务
+    ├── 新建：REQUIRED / REQUIRES_NEW / NESTED
+    ├── 裸奔：SUPPORTS / NOT_SUPPORTED / NEVER
+    └── 报错：MANDATORY
+```
+
+### 事务失效场景
+
+所有失效场景的根源都在于AOP代理机制。
+
+**失效场景1：类内部调用**
+- 失效原因：this是目标对象，不是代理对象，所以不会走AOP。
+```java
+@Service
+public class UserService {
+    @Transactional
+    public void outer() {
+        this.inner();  // 不经过代理！
+    }
+    @Transactional
+    public void inner() { ... }
+}
+```
+
+**失效场景2：非public方法**
+- 失效原因：CGLIB代理生成子类，可重写public、protected方法，private方法无法重写，代理无法拦截。基于接口的JDK代理也只能拦截public方法。
+
+**失效场景3：异常被catch**
+- 失效原因：只有在目标方法抛出异常时事务才会回滚，如果方法内部吞掉了异常，拦截器则感知不到任何异常，事务会正常提交。
+
+**失效场景4：异常类型不匹配**
+- 失效原因：@Transactional默认只回滚RuntimeException和Error，如果异常不一致，则不会回滚。
+
+**失效场景5：数据库引擎不支持事务**
+- 失效原因：如MyISAM引擎不支持事务
+
+**失效场景6：多线程**
+- 失效原因：跨线程导致事务丢失
+
+**失效场景7：事务传播行为错误**
+- 失效原因：错误使用事务传播行为，导致事务丢失。
+
+
+# Spring MVC
 
 
 
