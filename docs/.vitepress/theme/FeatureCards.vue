@@ -13,7 +13,8 @@ const books = [
 const notes = [
   { title: 'Java集合', link: '/knowledges/Java/Java集合' },
   { title: 'Java并发', link: '/knowledges/Java/Java并发' },
-  { title: 'JVM', link: '/knowledges/Java/JVM' }
+  { title: 'JVM', link: '/knowledges/Java/JVM' },
+  { title: 'Spring', link: '/knowledges/Java/Spring' }
 ]
 </script>
 

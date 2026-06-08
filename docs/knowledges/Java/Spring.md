@@ -361,6 +361,109 @@ public class UserService {
 
 # Spring Boot
 
+Spring Boot将Spring的**可配置性**固化为**约定**，通过自动装配、起步依赖、内嵌容器和配置文件等内容，让开发者更快速的搭建应用。
+
+## 自动装配原理
+
+![Spring Boot 自动装配流程](./images/SpringBoot-自动装配mermaid图.png)
+
+`@SpringBootApplication`注解是Spring Boot的入口，该注解是一个组合注解，包含三个注解：
+- `@SpringBootConfiguration`：内部实际为`@Configuration`，表明当前类为配置类。
+- `@ComponentScan`：组件扫描，默认扫描当前包及子包中的所有Bean。
+- `@EnableAutoConfiguration`：自动装配的核心。
+
+`@EnableAutoConfiguration`中通过@Import注解，导入了**AutoConfigurationImportSelector**类，该类实现了ImportSelector接口，通过selectImports方法扫描要装配的所有类。
+
+自动装配流程如下：
+- 加载`META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`文件中的类名（Spring Boot3.0之后扫描xxx.imports，3.0之前扫描spring.factories）
+- 过滤重复类名
+- 根据对应类中的条件注解来判定，若条件满足则装载对应Bean
+需注意，默认只会加载AutoConfiguration注解开头的imports，如有其他xxx.imports，由其他包自行实现ImportSelector扫描并装配。
+
+![Spring Boot 自动装配](./images/SpringBoot-自动装配.png)
+
+## 启动流程
+
+| 步骤                          | 做什么                                                             | 你学过的知识                                         |
+| --------------------------- | --------------------------------------------------------------- | ---------------------------------------------- |
+| **new SpringApplication()** | 推断是 Web 还是普通应用，加载初始化器和监听器                                       | 从`spring.factories`扫描需要加载的类                    |
+| **准备环境**                    | 加载 `application.yml`、环境变量、命令行参数                                 | `Environment` 抽象                               |
+| **创建上下文**                   | 根据 Web 类型创建对应容器                                                 | `ApplicationContext`                           |
+| **refresh()**               | **核心！** 执行 Spring 容器的全部启动逻辑                                     | `BeanDefinition`、`BeanPostProcessor`、Bean 生命周期 |
+| **refresh() 中自动配置生效**       | `AutoConfigurationImportSelector` 读取 `.imports` 文件，条件过滤，注册 Bean | 自动装配                                           |
+| **refresh() 中启动内嵌容器**       | `onRefresh()` 启动 Tomcat，注册 `DispatcherServlet`                  | 内嵌容器原理                                         |
+| **启动完成**                    | 执行 `ApplicationRunner`，应用就绪                                     | —                                              |
+
+## 自定义Starter
+
+Starter本质上是一个Maven/Gradle依赖，它里面没有业务代码，只做两件事：
+- **聚合依赖**：把需要的jar包一次性引入。
+- **触发自动装配**：通过AutoConfiguration.imports文件告诉Spring Boot哪些自动配置类需要加载。
+
+通常拆分为两个模块：
+- xxx-spring-boot-starter：starter模块，只包含pom.xml。
+- xxx-spring-boot-autoconfigure：自动配置模块。
+
+### 示例
+1、创建 greeter-spring-boot-autoconfigure 模块
+**① 编写属性类，用 `@ConfigurationProperties` 绑定配置**
+```java
+@ConfigurationProperties(prefix = "greeter")
+public class GreeterProperties {
+    private String prefix = "Hello";   // 默认值
+    private String suffix = "!";
+    // getters and setters
+}
+```
+**② 编写核心服务类**
+```java
+public class GreeterService {
+    private final GreeterProperties properties;
+    public GreeterService(GreeterProperties properties) {
+        this.properties = properties;
+    }
+    public String greet(String name) {
+        return properties.getPrefix() + ", " + name + properties.getSuffix();
+    }
+}
+```
+**③ 编写自动配置类**
+```java
+@AutoConfiguration  // 等价于 @Configuration，但专门用于自动配置
+@EnableConfigurationProperties(GreeterProperties.class)
+@ConditionalOnClass(GreeterService.class)
+public class GreeterAutoConfiguration {
+    @Bean
+    @ConditionalOnMissingBean
+    public GreeterService greeterService(GreeterProperties properties) {
+        return new GreeterService(properties);
+    }
+}
+```
+**④ 创建 `AutoConfiguration.imports` 文件**
+位置：`src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`
+内容：
+```text
+com.example.greeter.autoconfigure.GreeterAutoConfiguration
+```
+
+2、创建 Starter 模块
+在 Starter 的 `pom.xml` 中引入对应依赖
+```xml
+<dependency>
+    <groupId>com.example</groupId>
+    <artifactId>greeter-spring-boot-autoconfigure</artifactId>
+    <version>1.0.0</version>
+</dependency>
+```
+
+3、用户引入Starter
+当用户引入 `greeter-spring-boot-starter` 时：
+1. Starter 带入 `autoconfigure` 模块。
+2. Spring Boot 启动时扫描到 `AutoConfiguration.imports` 中的配置类。
+3. 条件满足（classpath 有 `GreeterService`，且用户未手动创建 `GreeterService` Bean）则自动创建。
+4. 用户可以在 `application.yml` 中自定义 `greeter.prefix` 和 `greeter.suffix`。
+
 
 
 # Spring Cloud
