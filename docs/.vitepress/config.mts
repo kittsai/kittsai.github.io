@@ -66,6 +66,20 @@ export default withMermaid(defineConfig({
             },
           ],
         },
+        {
+          text: "中间件",
+          collapsed: false,
+          items: [
+            {
+              text: "MySQL",
+              link: "/knowledges/中间件/MySQL",
+            },
+            {
+              text: "Redis",
+              link: "/knowledges/中间件/Redis",
+            },
+          ],
+        },
       ],
     },
     socialLinks: [{ icon: "github", link: "https://github.com/kittsai/kittsai.github.io" }],

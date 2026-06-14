@@ -22,7 +22,7 @@ npm install
 npm run docs:dev
 ```
 
-启动后访问 http://localhost:5173 预览站点。
+启动后访问 `http://localhost:5173` 预览站点。
 
 ## 其他命令
 
@@ -57,7 +57,7 @@ kit-docs/
 ## 内容
 
 - 📖 [Spring AI in Action](./docs/books/) - 中文翻译（第1-4章）
-- 📝 [Java 集合](./docs/knowledges/Java/) - Collection、Map 详解 + FAQ
+- 📝 [Java 集合](./docs/knowledges/Java/Java集合) - Collection、Map 详解 + FAQ
 
 ## 在线访问
 

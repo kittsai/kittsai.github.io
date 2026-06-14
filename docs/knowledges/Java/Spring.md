@@ -468,6 +468,32 @@ com.example.greeter.autoconfigure.GreeterAutoConfiguration
 
 # Spring Cloud
 
+单体应用发展到一定规模后，会面临：单点故障、扩展困难、协同开发难等问题，Spring Cloud提供了一套微服务架构的工具集，是分布式微服务架构的一站式解决方案，解决分布式中如下常见问题：
+- 服务注册与发现：Nacos
+- 远程调用：OpenFeign
+- 服务容错：Sentinel
+- 配置中心：Nacos
+- 网关：Gateway
+- 链路追踪：Sleuth + Zipkin
+
+Spring Cloud建立在Spring Boot之上，每个组件都是以Starter形式提供。Spring Boot让一个服务快速启动，Spring Cloud让一堆服务协同工作。
+
+国内大部分企业使用Spring Cloud Alibaba，后续以Spring Cloud Alibaba展开。
+
+## Nacos
+
+> [!NOTE] 介绍
+> Nacos，全称：Dynamic Naming and Configuration Service，是一个面向云原生和AI应用的动态服务发现、配置管理和AI管理中心平台。
+> 最早围绕两个核心问题构建：应用如何找到服务、应用如何安全地读取和更新配置。进入3.x后，Nacos在这些能力之上扩展了AI管理中心，用来管理Skill、A2A Agent、MCP server、Prompt等AI资源。
+> 官网：https://nacos.io/
+
+服务注册与发现流程：
+1. 微服务应用在启动过程中将自身包含的服务名称、主机IP地址、端口号等信息发送至注册中心。
+2. 上游微服务在处理请求时，根据服务名称到注册中心查询待调用的服务信息，包括IP及端口号等。
+3. 发起服务调用。
+
+![服务注册与发现](./images/服务注册与发现.png)
+
 
 
 
