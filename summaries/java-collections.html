@@ -136,5 +136,6 @@
   node.on('click',(e,d)=>{e.stopPropagation();document.getElementById('dTag').textContent=d.tag;document.getElementById('dTag').style.background=colorMap[d.group];document.getElementById('dTitle').textContent=d.label;const dl=document.getElementById('dBody');dl.innerHTML='';d.detail.forEach(([k,v])=>{const dt=document.createElement('dt');dt.textContent=k;const dd=document.createElement('dd');dd.textContent=v;dl.appendChild(dt);dl.appendChild(dd);});detail.style.display='block';});
   svg.on('click',()=>{detail.style.display='none';});
   sim.on('tick',()=>{link.attr('x1',d=>d.source.x).attr('y1',d=>d.source.y).attr('x2',d=>d.target.x).attr('y2',d=>d.target.y);node.attr('transform',d=>`translate(${d.x},${d.y})`);});
+  new ResizeObserver(()=>{W=gw.clientWidth;H=gw.clientHeight;svg.attr('viewBox',`0 0 ${W} ${H}`);sim.force('center',d3.forceCenter(W/2,H/2));sim.force('x',d3.forceX(W/2).strength(.04));sim.alpha(.3).restart();}).observe(gw);
 })();
 </script>

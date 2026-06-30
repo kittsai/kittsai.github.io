@@ -14,6 +14,15 @@ export default function TabBar() {
     } else {
       ai.classList.add('active');
       original.classList.remove('active');
+
+      // 触发 D3 图谱重新渲染
+      setTimeout(() => {
+        const gw = document.getElementById('gw');
+        if (gw) {
+          window.dispatchEvent(new Event('resize'));
+          gw.dispatchEvent(new Event('resize'));
+        }
+      }, 100);
     }
   }, [activeTab]);
 
