@@ -34,17 +34,22 @@ books.forEach(book => {
       ))}
     </ul>
   ))}
-  {Object.entries(bookSections).map(([cat, items]) => (
-    <div class="sb-group">📚 {cat}</div>
-    <ul>
-      {items.map(item => (
-        <li><a href={`/books/${item.id}`}
-               class:list={[{ active: item.id === currentSlug }]}>
-          {item.data.title}
-        </a></li>
+  {Object.keys(bookSections).length > 0 && (
+    <>
+      <div class="sb-title" style="margin-top: 20px;">读书记录</div>
+      {Object.entries(bookSections).map(([cat, items]) => (
+        <div class="sb-group">{cat}</div>
+        <ul>
+          {items.map(item => (
+            <li><a href={`/books/${item.id}`}
+                   class:list={[{ active: item.id === currentSlug }]}>
+              {item.data.title}
+            </a></li>
+          ))}
+        </ul>
       ))}
-    </ul>
-  ))}
+    </>
+  )}
 </aside>
 
 <style>
