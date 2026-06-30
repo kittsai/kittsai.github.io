@@ -176,7 +176,7 @@ flowchart TD
 8. **放入单例池** —— Bean 可以被正常使用
 9. **销毁** —— `@PreDestroy` 和 `destroy-method` 收尾
 
-![Spring Bean生命周期](./images/Spring-Bean生命周期.png)
+![Spring Bean生命周期](/images/Spring-Bean生命周期.png)
 
 
 # 面向切面编程
@@ -235,11 +235,11 @@ Spring不直接管理数据库事务，而是提供统一的抽象层。
 - `TransactionDefinition`：事务定义，包括隔离级别、传播行为、超时等。
 - `TransactionStatus`：事务状态
 
-![PlatformTransactionManager](./images/Spring事务-PlatformTransactionManager.png)
+![PlatformTransactionManager](/images/Spring事务-PlatformTransactionManager.png)
 
-![TransactionDefinition](./images/Spring事务-TransactionDefinition.png)
+![TransactionDefinition](/images/Spring事务-TransactionDefinition.png)
 
-![TransactionStatus](./images/Spring事务-TransactionStatus.png)
+![TransactionStatus](/images/Spring事务-TransactionStatus.png)
 
 事务管理的两种方式：
 - 声明式事务：`@Transactional` + AOP
@@ -371,7 +371,7 @@ Spring Boot将Spring的**可配置性**固化为**约定**，通过自动装配�
 
 ## 自动装配原理
 
-![Spring Boot 自动装配流程](./images/SpringBoot-自动装配mermaid图.png)
+![Spring Boot 自动装配流程](/images/SpringBoot-自动装配mermaid图.png)
 
 `@SpringBootApplication`注解是Spring Boot的入口，该注解是一个组合注解，包含三个注解：
 - `@SpringBootConfiguration`：内部实际为`@Configuration`，表明当前类为配置类。
@@ -386,7 +386,7 @@ Spring Boot将Spring的**可配置性**固化为**约定**，通过自动装配�
 - 根据对应类中的条件注解来判定，若条件满足则装载对应Bean
 需注意，默认只会加载AutoConfiguration注解开头的imports，如有其他xxx.imports，由其他包自行实现ImportSelector扫描并装配。
 
-![Spring Boot 自动装配](./images/SpringBoot-自动装配.png)
+![Spring Boot 自动装配](/images/SpringBoot-自动装配.png)
 
 ## 启动流程
 
@@ -498,7 +498,7 @@ Spring Cloud建立在Spring Boot之上，每个组件都是以Starter形式提�
 2. 上游微服务在处理请求时，根据服务名称到注册中心查询待调用的服务信息，包括IP及端口号等。
 3. 发起服务调用。
 
-![服务注册与发现](./images/服务注册与发现.png)
+![服务注册与发现](/images/服务注册与发现.png)
 
 
 

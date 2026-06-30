@@ -6,7 +6,7 @@ description: Java 并发编程核心知识：线程、锁、并发工具、线�
 
 # Java并发
 
-![Java并发总览](./images/Java并发总览.png)
+![Java并发总览](/images/Java并发总览.png)
 
 - 原子性：一个或多个操作，要么全部执行完且中间不被任何干扰，要么一个都不执行。
 - 可见性：一个线程对共享变量的修改，其他线程能立刻看到。
@@ -17,7 +17,7 @@ description: Java 并发编程核心知识：线程、锁、并发工具、线�
 > [!info] JMM
 > 主要解决可见性、有序性，基本保证原子性操作。
 
-![JMM总览](./images/JMM总览.png)
+![JMM总览](/images/JMM总览.png)
 
 ## JMM是什么
 Java内存模型（Java Memory Model），简称JMM，是一套抽象的规范。定义了多线程环境中共享变量的访问规则。
@@ -25,7 +25,7 @@ JMM将内存划分为主内存和工作内存。
 - 主内存：所有线程共享，存放变量的正式值。
 - 工作内存：每个线程私有，存放该线程用到的**主内存变量的副本**。
 
-![JMM内存模型](./images/JMM内存模型.png)
+![JMM内存模型](/images/JMM内存模型.png)
 
 ## JMM解决什么问题
 JMM解决可见性、有序性两个问题：
@@ -143,14 +143,14 @@ AQS的两种获取锁模式：
 	- 典型实现：ReentrantLock。
 	- 状态变量state含义：锁支持次数（0=空闲，1=持有，>1=重入）。
 
-![AQS独占模式](./images/AQS独占模式.png)
+![AQS独占模式](/images/AQS独占模式.png)
 
 - 共享模式：
 	- 核心特征：同一时刻**多个线程**可以同时成功获取资源。
 	- 典型实现：Semaphore、CountDownLatch。
 	- 状态变量state含义：剩余许可证/资源数量。
 
-![AQS共享模式](./images/AQS共享模式.png)
+![AQS共享模式](/images/AQS共享模式.png)
 
 ReentrantLock、Semaphore、CountDownLatch等都是基于AQS实现的。
 
@@ -342,7 +342,7 @@ ArrayBlockingQueue和LinkedBlockingQueue的区别：
 - TIMED_WAITING：限时等待，超时自动返回。
 - TERMINATED：线程执行完毕或异常退出。
 
-![线程生命周期](./images/线程生命周期.png)
+![线程生命周期](/images/线程生命周期.png)
 
 ## 原子类
 

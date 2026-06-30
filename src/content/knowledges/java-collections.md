@@ -6,7 +6,7 @@ description: 从根接口到具体实现的全景梳理：Collection 与 Map 的
 
 # Java集合总览
 
-![Java集合总览](./images/Java集合总览.png)
+![Java集合总览](/images/Java集合总览.png)
 
 ---
 

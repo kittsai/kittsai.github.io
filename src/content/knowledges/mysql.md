@@ -28,7 +28,7 @@ Server层：
 - Buffer Pool：数据与索引的缓存池。
 - Log Buffer：redo log的缓存。
 
-![InnoDB内存结构](./images/InnoDB内存结构.png)
+![InnoDB内存结构](/images/InnoDB内存结构.png)
 
 ### Buffer Pool
 
@@ -127,7 +127,7 @@ ACID：
 
 实际事务执行时，从根据当前活跃事务ID列表 及 当前数据行的最新事务ID，来判断数据可见性。
 
-![MVCC](./images/MVCC.png)
+![MVCC](/images/MVCC.png)
 
 ## 当前读
 
@@ -135,19 +135,19 @@ ACID：
 在执行更新操作时，会根据具体SQL判断是否需要加行锁、间隙锁、临键锁，防止其他事务更改当前行或在数据间隙插入数据。
 在执行`insert` 操作时，会产生**插入意向锁**。插入意向锁与间隙锁互斥，需要等待间隙锁释放后再执行。
 
-![当前读的三种加锁方式](./images/MySQL-当前读的三种加锁方式.png)
+![当前读的三种加锁方式](/images/MySQL-当前读的三种加锁方式.png)
 
 行锁：
 
-![行锁](./images/MySQL-行锁.png)
+![行锁](/images/MySQL-行锁.png)
 
 间隙锁：
 
-![间隙锁](./images/MySQL-间隙锁.png)
+![间隙锁](/images/MySQL-间隙锁.png)
 
 临键锁：
 
-![临键锁](./images/MySQL-临键锁.png)
+![临键锁](/images/MySQL-临键锁.png)
 
 
 # 锁
@@ -168,7 +168,7 @@ ACID：
 - redo log 和 undo log 是InnoDB存储引擎层独有的，物理记录数据页变更或旧数据。
 - binlog是Server层产生的，与引擎无关，逻辑记录SQL或行变化。
 
-![redolog undolog binlog](./images/MySQL-redolog&undolog&binlog.png)
+![redolog undolog binlog](/images/MySQL-redolog&undolog&binlog.png)
 
 ## redo log
 
