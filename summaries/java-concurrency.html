@@ -1,0 +1,381 @@
+<style>
+  .wrap{max-width:1400px;margin:0 auto;padding:24px 24px 60px;}
+  header.masthead{border-bottom:3px double var(--ink);padding-bottom:18px;margin-bottom:24px;}
+  .kicker{font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--accent);margin-bottom:8px;}
+  h1{font-size:clamp(34px,5vw,56px);line-height:1.02;margin:0 0 10px;font-weight:700;}
+  .dek{font-size:17px;color:var(--muted);max-width:760px;line-height:1.5;margin:0;}
+  .layout{display:block;}
+  .graph-card{background:var(--paper);border:1px solid var(--line);border-radius:4px;position:relative;overflow:hidden;box-shadow:0 1px 0 #fff inset, 0 8px 26px rgba(40,32,20,.08);}
+  .graph-head{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--line);font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
+  .legend{display:flex;flex-wrap:wrap;gap:10px;}
+  .lg{display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none;opacity:.95;}
+  .lg .dot{width:11px;height:11px;border-radius:50%;display:inline-block;}
+  #graph{width:100%;height:clamp(540px,74vh,820px);display:block;}
+  .controls{display:flex;gap:8px;align-items:center;}
+  .btn{font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:11px;background:var(--ink);color:var(--paper);border:none;border-radius:3px;padding:5px 10px;cursor:pointer;}
+  .btn:hover{background:var(--accent);}
+  .node circle{cursor:pointer;stroke:#fbf8f1;stroke-width:1.5px;transition:opacity .2s;}
+  .node text{font-family:"Iowan Old Style",Palatino,Georgia,serif;fill:var(--ink);pointer-events:none;paint-order:stroke;stroke:rgba(251,248,241,.85);stroke-width:3px;}
+  .link{stroke:#b9ad97;stroke-opacity:.5;fill:none;}
+  .node.dim{opacity:.12;}
+  .link.dim{stroke-opacity:.06;}
+  aside.panel{position:absolute;top:64px;right:16px;width:330px;max-width:calc(100% - 32px);max-height:calc(100% - 84px);overflow-y:auto;background:rgba(251,248,241,.96);backdrop-filter:blur(6px);border:1px solid var(--line);border-radius:6px;padding:18px;box-shadow:0 10px 34px rgba(40,32,20,.18);opacity:0;transform:translateY(-6px) scale(.98);pointer-events:none;transition:opacity .22s ease,transform .22s ease;z-index:5;}
+  aside.panel.show{opacity:1;transform:none;pointer-events:auto;}
+  .panel .close{position:absolute;top:10px;right:12px;border:none;background:none;font-size:20px;color:var(--muted);cursor:pointer;}
+  .panel .close:hover{color:var(--accent);}
+  .panel h2{font-size:22px;margin:6px 22px 4px 0;line-height:1.12;}
+  .panel .tag{display:inline-block;font-family:"SF Mono",monospace;font-size:10px;padding:2px 8px;border-radius:20px;color:#fff;margin-bottom:14px;}
+  .panel p{font-size:15px;line-height:1.55;color:#2c2820;margin:0 0 12px;}
+  .panel ul{margin:0 0 12px;padding-left:18px;}
+  .panel li{font-size:14px;line-height:1.5;margin-bottom:6px;color:#332f26;}
+  .summary h2.sec{font-size:13px;font-family:"Helvetica Neue",Arial,sans-serif;text-transform:uppercase;letter-spacing:.22em;color:var(--accent);border-bottom:1px solid var(--line);padding-bottom:8px;margin:38px 0 18px;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:16px;}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:16px 18px;box-shadow:0 6px 18px rgba(40,30,15,.05);}
+  .card h3{margin:0 0 4px;font-size:18px;display:flex;align-items:center;gap:8px;}
+  .card h3 .pip{width:10px;height:10px;border-radius:2px;display:inline-block;}
+  .card .sub{font-family:"Helvetica Neue",Arial,sans-serif;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;}
+  .card ul{margin:8px 0 0;padding-left:18px;font-size:14px;line-height:1.55;}
+  .card ul li{margin-bottom:4px;}
+  .card .ts{font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:11px;background:#efe7d8;padding:1px 6px;border-radius:4px;color:#5b4a32;}
+  .safe-no{color:#b03a2e;font-weight:700;}
+  .safe-yes{color:#2f7d5b;font-weight:700;}
+  details.faq{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:0 16px;margin-bottom:10px;}
+  details.faq summary{cursor:pointer;padding:13px 0;font-weight:700;font-size:15px;list-style:none;display:flex;justify-content:space-between;align-items:center;}
+  details.faq summary::-webkit-details-marker{display:none;}
+  details.faq summary::after{content:"+";color:var(--accent);font-size:20px;font-family:sans-serif;}
+  details.faq[open] summary::after{content:"\2013";}
+  details.faq .body{padding:0 0 14px;font-size:14px;line-height:1.6;font-family:"Helvetica Neue",Arial,sans-serif;}
+</style>
+<div class="wrap">
+<div class="wrap">
+  <header class="masthead">
+    <div class="kicker">知识笔记 · 结构化总结 + 交互式知识图谱</div>
+    <h1>Java 并发</h1>
+    <p class="dek">从内存模型到锁、并发工具与线程池，一篇笔记的全景梳理。点击任意节点查看详情，可拖拽节点、滚轮缩放。</p>
+  </header>
+
+  <div class="layout">
+    <div class="graph-card">
+      <div class="graph-head">
+        <div class="legend" id="legend"></div>
+        <div class="controls">
+          <button class="btn" id="resetBtn">重置布局</button>
+        </div>
+      </div>
+      <svg id="graph"></svg>
+      <aside class="panel" id="panel"></aside>
+    </div>
+  </div>
+
+  <!-- ============ STRUCTURED SUMMARY ============ -->
+  <section class="summary">
+    <h2 class="sec">结构化总结</h2>
+    <div class="cards">
+
+      <div class="topic" style="border-top-color:var(--c-root)">
+        <h3>并发三大特性</h3>
+        <div class="sub">原子性 · 可见性 · 有序性</div>
+        <ul>
+          <li><b>原子性</b>：一组操作要么全做完且中途不被打断，要么都不做。</li>
+          <li><b>可见性</b>：一个线程对共享变量的修改，其他线程能立刻看到。</li>
+          <li><b>有序性</b>：程序按代码书写顺序执行（编译器/处理器会重排序破坏它）。</li>
+        </ul>
+      </div>
+
+      <div class="topic" style="border-top-color:var(--c-jmm)">
+        <h3>Java 内存模型 (JMM)</h3>
+        <div class="sub">抽象规范 · 主内存 / 工作内存</div>
+        <ul>
+          <li>定义多线程下共享变量的访问规则，分<b>主内存</b>（共享，正式值）与<b>工作内存</b>（线程私有，变量副本）。</li>
+          <li><b>解决可见性</b>：强制刷新/失效协议（volatile、synchronized、final）。</li>
+          <li><b>解决有序性</b>：定义 <b>Happens-Before</b> 原则，规定哪些操作不可重排。</li>
+          <li><b>基本原子性</b>：除 <code>long</code>/<code>double</code> 外的单次读写原子；复合操作需加锁。</li>
+          <li><b>落地方式</b>：JIT 插入<b>内存屏障</b>（LoadLoad / StoreStore / LoadStore / StoreLoad）+ 硬件 <code>lock</code> 指令（MESI 缓存一致性）。</li>
+        </ul>
+      </div>
+
+      <div class="topic" style="border-top-color:var(--c-keyword)">
+        <h3>三个关键字</h3>
+        <div class="sub">volatile · synchronized · final</div>
+        <ul>
+          <li><b>volatile</b>：最轻量同步。保证可见性 + 有序性，<b>不保证原子性</b>。写前 StoreStore / 写后 StoreLoad，读后 LoadLoad+LoadStore。</li>
+          <li><b>synchronized</b>：较重，三性全保证。靠 <code>monitorenter/exit</code> + 对象头 Mark Word + ObjectMonitor。锁升级：无锁→偏向锁→轻量级锁→重量级锁。</li>
+          <li><b>final</b>：解决不可变对象的安全发布。构造期 <code>this</code> 不逸出时，构造末尾插入 StoreStore 屏障保证 final 字段对其他线程可见。</li>
+        </ul>
+      </div>
+
+      <div class="topic" style="border-top-color:var(--c-aqs)">
+        <h3>AQS 与并发工具</h3>
+        <div class="sub">AbstractQueuedSynchronizer</div>
+        <ul>
+          <li>基于 <b>FIFO 双向队列</b> + <b>volatile state</b> 的框架，用<b>模板方法</b>封装排队/阻塞/唤醒（LockSupport.park/unpark）。</li>
+          <li><b>独占模式</b>：同一时刻仅一个线程，典型 ReentrantLock。</li>
+          <li><b>共享模式</b>：多线程同时获取，典型 Semaphore、CountDownLatch。</li>
+          <li>Node 的 <code>waitStatus</code>：SIGNAL(-1) 需唤醒后继；CANCELLED(1) 已取消。</li>
+        </ul>
+      </div>
+
+      <div class="topic" style="border-top-color:var(--c-misc)">
+        <h3>ThreadLocal</h3>
+        <div class="sub">线程级隔离</div>
+        <ul>
+          <li>每个 Thread 持有一个 <b>ThreadLocalMap</b>，key 为 ThreadLocal（<b>弱引用</b>），value 为存储值。</li>
+          <li>key 用弱引用，便于 ThreadLocal 失去外部引用后被 GC 回收。</li>
+          <li>但 value 仍被强引用 → 必须 <code>remove()</code> 清理，防止<b>内存泄漏</b>。</li>
+        </ul>
+      </div>
+
+      <div class="topic" style="border-top-color:var(--c-pool)">
+        <h3>线程池</h3>
+        <div class="sub">ThreadPoolExecutor · 池化技术</div>
+        <ul>
+          <li><b>为何用</b>：降低创建/销毁开销、提高响应速度、便于管理监控。</li>
+          <li><b>7 参数</b>：核心数、最大数、keepAlive、单位、等待队列、线程工厂、拒绝策略。</li>
+          <li><b>执行流程</b>：核心线程 → 队列 → 非核心线程 → 拒绝策略。</li>
+          <li><b>拒绝策略</b>：Abort（默认抛异常）、CallerRuns、Discard、DiscardOldest。</li>
+          <li><b>最佳实践</b>：阿里规约禁用 Executors（OOM/资源耗尽风险）；CPU 密集 = 核心数+1，IO 密集 ≈ 核心数×2。</li>
+        </ul>
+      </div>
+
+      <div class="topic" style="border-top-color:var(--c-misc)">
+        <h3>线程生命周期</h3>
+        <div class="sub">6 种状态</div>
+        <ul>
+          <li><b>NEW</b> 新建 → <b>RUNNABLE</b> 可运行（含就绪+运行）。</li>
+          <li><b>BLOCKED</b> 等待 synchronized 锁。</li>
+          <li><b>WAITING</b> 无限等待（park/wait/join）；<b>TIMED_WAITING</b> 限时等待。</li>
+          <li><b>TERMINATED</b> 执行完毕或异常退出。</li>
+        </ul>
+      </div>
+
+      <div class="topic" style="border-top-color:var(--c-aqs)">
+        <h3>AQS 三实现对比</h3>
+        <div class="sub">ReentrantLock · Semaphore · CountDownLatch</div>
+        <table class="cmp">
+          <tr><th>特性</th><th>Reentrant</th><th>Semaphore</th><th>CountDown</th></tr>
+          <tr><td>模式</td><td>独占</td><td>共享</td><td>共享</td></tr>
+          <tr><td>state</td><td>持有次数</td><td>剩余许可</td><td>待等事件</td></tr>
+          <tr><td>可重入</td><td>✅</td><td>❌</td><td>❌</td></tr>
+          <tr><td>复用</td><td>可复用</td><td>可复用</td><td>一次性</td></tr>
+        </table>
+      </div>
+
+    </div>
+    <p class="footnote">源自笔记《Java 并发 · kit-docs》。图谱与卡片为结构化重组，便于复习与检索。</p>
+  </section>
+</div>
+
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script>
+const groups = {
+  root:    {label:"核心主线", color:"#c0392b"},
+  jmm:     {label:"内存模型", color:"#1f6f6b"},
+  keyword: {label:"关键字",   color:"#b8860b"},
+  aqs:     {label:"AQS 体系", color:"#5b4b8a"},
+  pool:    {label:"线程池",   color:"#2c6e9b"},
+  misc:    {label:"其他",     color:"#a8552c"}
+};
+
+const nodes = [
+  {id:"Java并发", g:"root", r:26, info:{tag:"核心",p:"全篇主线，围绕并发三大特性展开：原子性、可见性、有序性。",li:["<b>原子性</b>：操作要么全做完不被打断，要么都不做","<b>可见性</b>：一个线程的修改其他线程立刻可见","<b>有序性</b>：程序按代码书写顺序执行"]}},
+
+  {id:"JMM 内存模型", g:"jmm", r:20, info:{tag:"内存模型",p:"Java Memory Model，一套抽象规范，定义多线程下共享变量的访问规则。",li:["<b>主内存</b>：所有线程共享，存放变量正式值","<b>工作内存</b>：每个线程私有，存放主内存变量的副本","主要解决可见性、有序性，基本保证原子性"]}},
+  {id:"解决可见性", g:"jmm", r:13, info:{tag:"内存模型",p:"建立『强制刷新/失效』协议：操作不能一直停留在工作内存，需在特定时刻同步主内存。",li:["<b>volatile</b>：写立即刷主内存；读强制从主内存加载","<b>synchronized</b>：加锁清空副本、解锁前刷回主内存","<b>final</b>：this 不逸出时，构造后字段立刻可见"]}},
+  {id:"解决有序性", g:"jmm", r:13, info:{tag:"内存模型",p:"定义 <b>Happens-Before</b> 原则，规定哪些操作不可被重排序。",li:["有序性问题源自编译器与处理器的指令重排序优化"]}},
+  {id:"基本原子性", g:"jmm", r:12, info:{tag:"内存模型",p:"JMM 只保证基本读写的原子性。",li:["除 <code>long</code>/<code>double</code> 外，单次读写都是原子的","复合操作必须通过锁或其他方式保证原子性"]}},
+  {id:"内存屏障", g:"jmm", r:15, info:{tag:"内存模型 · 实现",p:"JIT 编译时在关键位置插入四种屏障指令落地 JMM 规范。",li:["<b>LoadLoad</b>：禁止前后读重排","<b>StoreStore</b>：禁止前后写重排","<b>LoadStore</b>：禁止前读与后写重排","<b>StoreLoad</b>：禁止前写与后读重排（最重，兼具其他三者）"]}},
+  {id:"硬件指令", g:"jmm", r:12, info:{tag:"内存模型 · 实现",p:"内存屏障主要靠 CPU 的 <code>lock xxx</code> 指令实现。",li:["强制刷新当前 CPU 缓存到主内存","通过 <b>MESI</b> 缓存一致性协议使其他 CPU 缓存失效","阻止 lock 前后指令重排序"]}},
+
+  {id:"volatile", g:"keyword", r:18, info:{tag:"关键字",p:"最轻量的同步机制，保证可见性与有序性，<b>不保证原子性</b>。",li:["写前 StoreStore，写后 StoreLoad（刷新工作内存到主内存）","读后 LoadLoad + LoadStore（强制从主内存加载）"]}},
+  {id:"synchronized", g:"keyword", r:18, info:{tag:"关键字",p:"较重的同步机制，保证原子性、可见性、有序性。",li:["<b>用法</b>：普通方法锁 this、静态方法锁类对象、代码块锁指定对象","<b>原子性</b>：锁互斥，同一时刻仅一个线程进临界区","<b>底层</b>：monitorenter/exit + ACC_SYNCHRONIZED + ObjectMonitor","临界区内指令允许重排，但不能跨出/跨入临界区"]}},
+  {id:"锁升级", g:"keyword", r:13, info:{tag:"关键字 · synchronized",p:"对象头 Mark Word 记录锁状态，按竞争程度升级。",li:["<b>无锁</b> → <b>偏向锁</b>：CAS 记录线程 ID，消除同线程反复加锁开销","<b>轻量级锁</b>：并发时 CAS 自旋，指向栈中 Lock Record","<b>重量级锁</b>：自旋失败/竞争激烈，创建 ObjectMonitor，线程被 OS 挂起"]}},
+  {id:"final", g:"keyword", r:15, info:{tag:"关键字",p:"解决不可变对象的安全发布问题。",li:["构造完成且 this 未逸出，其他线程无需同步即可见 final 字段正确值","构造末尾 JIT 插入 <b>StoreStore</b> 屏障保证安全发布","只有含 final 字段的构造方法才插入该屏障"]}},
+
+  {id:"AQS", g:"aqs", r:20, info:{tag:"AQS 体系",p:"AbstractQueuedSynchronizer：基于 FIFO 等待队列、用 volatile state 表示同步状态的框架。",li:["用<b>模板方法</b>封装入队/出队、park/unpark、中断超时","<b>数据结构</b>：state + Node 双向链表 + waitStatus","<b>waitStatus</b>：SIGNAL(-1) 需唤醒后继；CANCELLED(1) 已取消","两种模式：独占 / 共享"]}},
+  {id:"ReentrantLock", g:"aqs", r:15, info:{tag:"AQS · 独占模式",p:"可重入互斥锁，内部 Sync 继承 AQS，分公平/非公平（默认非公平）。",li:["<b>加锁</b> lock()→acquire(1)：state=0 则 CAS 获取；已持有则 +1 重入；失败入队","<b>解锁</b> unlock()→release(1)：state-1，清零则释放并唤醒后继","<b>公平</b>：先看队列再排队；<b>非公平</b>：直接 CAS 抢锁"]}},
+  {id:"Semaphore", g:"aqs", r:14, info:{tag:"AQS · 共享模式",p:"信号量，state 表示<b>剩余许可证数量</b>，控制多线程访问资源。",li:["<b>acquire</b>：state>0 则 CAS -1 获取许可；否则入队","<b>release</b>：CAS +1 归还许可","许可>0 时 AQS 自动唤醒下一个等待线程，state 可复用"]}},
+  {id:"CountDownLatch", g:"aqs", r:14, info:{tag:"AQS · 共享模式",p:"倒计时门闩，state 表示<b>还需等待的事件数</b>，<b>一次性</b>。",li:["<b>await</b>：state=0 放行；否则入队","<b>countDown</b>：CAS state-1，归零时释放并唤醒全部","与 Semaphore 区别：state 一次性，归零后门闩永久打开"]}},
+
+  {id:"ThreadLocal", g:"misc", r:16, info:{tag:"线程隔离",p:"线程级隔离工具，每个线程一份独立存储，避免共享与竞争。",li:["每个 Thread 持有 <b>ThreadLocalMap</b>（哈希表）","key = ThreadLocal（<b>弱引用</b>），value = 存储值","弱引用便于回收；value 仍强引用 → 必须 <code>remove()</code> 防内存泄漏"]}},
+
+  {id:"线程池", g:"pool", r:19, info:{tag:"线程池",p:"池化资源技术：预创建线程，任务来取用、用完归还而非销毁。",li:["<b>降低资源消耗</b>：避免频繁创建销毁","<b>提高响应速度</b>：无需等待线程创建","<b>提高可管理性</b>：统一分配、调优、监控"]}},
+  {id:"ThreadPoolExecutor", g:"pool", r:15, info:{tag:"线程池 · 核心类",p:"线程池核心实现类，7 个构造参数。",li:["<b>corePoolSize</b> 核心线程数（空闲不回收）","<b>maximumPoolSize</b> 最大线程数","<b>keepAliveTime</b>+unit 多余线程存活时间","<b>workQueue</b> 等待队列 / <b>threadFactory</b> 线程工厂 / <b>handler</b> 拒绝策略"]}},
+  {id:"执行流程", g:"pool", r:12, info:{tag:"线程池",p:"任务进入线程池的处理顺序。",li:["线程数 < 核心数 → 创建核心线程","= 核心数且队列未满 → 入队列","队列满且 < 最大数 → 创建非核心（救急）线程","队列满且 ≥ 最大数 → 执行拒绝策略"]}},
+  {id:"Executors", g:"pool", r:13, info:{tag:"线程池 · 工厂",p:"JUC 线程池工厂类，快速创建 ExecutorService。阿里规约禁用。",li:["<b>FixedThreadPool</b>：固定大小，无界 LinkedBlockingQueue","<b>CachedThreadPool</b>：核心0/最大∞，SynchronousQueue","<b>SingleThreadExecutor</b>：单线程，无界队列","<b>ScheduledThreadPool</b>：定时调度，DelayedWorkQueue","<b>风险</b>：无界队列→OOM；最大数∞→资源耗尽"]}},
+  {id:"等待队列", g:"pool", r:12, info:{tag:"线程池 · BlockingQueue",p:"均来自 java.util.concurrent.BlockingQueue。",li:["<b>ArrayBlockingQueue</b>：数组有界，单锁","<b>LinkedBlockingQueue</b>：链表默认无界，双锁吞吐高","<b>SynchronousQueue</b>：无容量直接提交","<b>Priority / DelayedWorkQueue</b>：优先级 / 延迟"]}},
+  {id:"拒绝策略", g:"pool", r:12, info:{tag:"线程池",p:"队列满且达最大线程数时触发。",li:["<b>AbortPolicy</b>（默认）：抛 RejectedExecutionException","<b>CallerRunsPolicy</b>：调用者线程自己执行","<b>DiscardPolicy</b>：静默丢弃新任务","<b>DiscardOldestPolicy</b>：丢弃队列中最老任务"]}},
+  {id:"配置最佳实践", g:"pool", r:12, info:{tag:"线程池",p:"按任务类型设定线程数。",li:["<b>CPU 密集型</b>：线程数 = CPU核心数 + 1","<b>IO 密集型</b>：≈ 核心数×2，或 核心数×(1+等待/计算)"]}},
+
+  {id:"线程生命周期", g:"misc", r:15, info:{tag:"线程状态",p:"线程的 6 种状态。",li:["<b>NEW</b> 新建未启动 → <b>RUNNABLE</b> 可运行（就绪+运行）","<b>BLOCKED</b>：等待 synchronized 锁","<b>WAITING</b>：无限等待（park/wait/join）","<b>TIMED_WAITING</b>：限时等待；<b>TERMINATED</b>：结束"]}}
+];
+
+const links = [
+  ["Java并发","JMM 内存模型"],["Java并发","volatile"],["Java并发","synchronized"],
+  ["Java并发","final"],["Java并发","AQS"],["Java并发","ThreadLocal"],
+  ["Java并发","线程池"],["Java并发","线程生命周期"],
+
+  ["JMM 内存模型","解决可见性"],["JMM 内存模型","解决有序性"],["JMM 内存模型","基本原子性"],
+  ["JMM 内存模型","内存屏障"],["内存屏障","硬件指令"],
+
+  ["解决可见性","volatile"],["解决可见性","synchronized"],["解决可见性","final"],
+  ["内存屏障","volatile"],["内存屏障","synchronized"],["内存屏障","final"],
+  ["synchronized","锁升级"],
+
+  ["AQS","ReentrantLock"],["AQS","Semaphore"],["AQS","CountDownLatch"],
+  ["AQS","volatile"],
+
+  ["线程池","ThreadPoolExecutor"],["ThreadPoolExecutor","执行流程"],
+  ["ThreadPoolExecutor","Executors"],["ThreadPoolExecutor","等待队列"],
+  ["ThreadPoolExecutor","拒绝策略"],["ThreadPoolExecutor","配置最佳实践"],
+
+  ["线程生命周期","synchronized"],["线程生命周期","AQS"]
+];
+
+const nodeById = new Map(nodes.map(n=>[n.id,n]));
+const linkObjs = links.map(([s,t])=>({source:s,target:t}));
+
+// adjacency for highlight
+const adj = new Map(nodes.map(n=>[n.id,new Set([n.id])]));
+linkObjs.forEach(l=>{adj.get(l.source).add(l.target);adj.get(l.target).add(l.source);});
+
+const svg = d3.select("#graph");
+let W=900,H=620;
+function dims(){const r=svg.node().getBoundingClientRect();W=r.width;H=r.height;}
+dims();
+
+const root = svg.append("g");
+const linkSel = root.append("g").selectAll("line").data(linkObjs).join("line").attr("class","link").attr("stroke-width",d=>nodeById.get(d.source).g==="root"?1.4:1);
+const nodeSel = root.append("g").selectAll("g").data(nodes).join("g").attr("class","node");
+
+nodeSel.append("circle")
+  .attr("r",d=>d.r)
+  .attr("fill",d=>groups[d.g].color)
+  .attr("opacity",.92);
+
+nodeSel.append("text")
+  .text(d=>d.id)
+  .attr("text-anchor","middle")
+  .attr("dy",d=>d.r+15)
+  .attr("font-size",d=>d.g==="root"?16:(d.r>=18?14:12.5))
+  .attr("font-weight",d=>d.r>=18?700:500);
+
+// ---- BOUNDED FORCE LAYOUT: springs in, then auto-freezes ----
+// Nodes seed from a radial arrangement (stable, attractive), the simulation
+// runs briefly to give that elastic "settle" feel, then stops so nothing
+// keeps computing. Dragging a node wakes it for a short elastic nudge and
+// it quickly re-freezes — bounce on demand, zero idle CPU.
+const VW=1200, VH=780, CX=VW/2, CY=VH/2;
+
+const groupAngle={jmm:-150,keyword:-90,aqs:-30,pool:60,misc:150}; // degrees
+const RING=235;
+const rad=d=>d*Math.PI/180;
+
+// seed positions radially so the spring-in starts from a sensible shape
+nodes.forEach(n=>{
+  if(n.g==="root"){ n.x=CX; n.y=CY; return; }
+  const a=rad(groupAngle[n.g]||0);
+  const jitter=(Math.random()-0.5)*90;
+  n.x=CX+Math.cos(a)*RING + jitter;
+  n.y=CY+Math.sin(a)*RING + jitter;
+});
+
+svg.attr("viewBox",`0 0 ${VW} ${VH}`).attr("preserveAspectRatio","xMidYMid meet");
+
+const sim = d3.forceSimulation(nodes)
+  .force("link",d3.forceLink(linkObjs).id(d=>d.id).distance(d=>{
+    return (nodeById.get(d.source.id||d.source).g==="root")?150:92;
+  }).strength(.5))
+  .force("charge",d3.forceManyBody().strength(-470).distanceMax(440))
+  .force("center",d3.forceCenter(CX,CY))
+  .force("x",d3.forceX(CX).strength(.045))
+  .force("y",d3.forceY(CY).strength(.045))
+  .force("collide",d3.forceCollide().radius(d=>d.r+22))
+  .alphaDecay(.028)      // settles in ~3s then the loop stops on its own
+  .velocityDecay(.4)
+  .on("tick",ticked);
+
+function ticked(){
+  linkSel.attr("x1",d=>d.source.x).attr("y1",d=>d.source.y)
+         .attr("x2",d=>d.target.x).attr("y2",d=>d.target.y);
+  nodeSel.attr("transform",d=>`translate(${d.x},${d.y})`);
+}
+
+// zoom/pan
+const zoom=d3.zoom().scaleExtent([.5,2.6]).on("zoom",e=>root.attr("transform",e.transform));
+svg.call(zoom);
+
+// drag — wakes the sim briefly for an elastic bounce, then it re-freezes
+nodeSel.style("cursor","grab").call(d3.drag()
+  .on("start",(e,d)=>{if(!e.active)sim.alphaTarget(.25).restart();d.fx=d.x;d.fy=d.y;})
+  .on("drag",(e,d)=>{d.fx=e.x;d.fy=e.y;})
+  .on("end",(e,d)=>{if(!e.active)sim.alphaTarget(0);d.fx=null;d.fy=null;}));
+
+// interaction: click
+const panel=d3.select("#panel");
+let active=null, hiddenGroups=new Set();
+
+nodeSel.on("click",(e,d)=>{
+  e.stopPropagation();
+  active = active===d.id?null:d.id;
+  if(active){ renderPanel(d); panel.classed("show",true); }
+  else { hidePanel(); }
+  applyHighlight();
+});
+nodeSel.on("mouseenter",function(){d3.select(this).select("circle").attr("opacity",1);})
+       .on("mouseleave",function(){d3.select(this).select("circle").attr("opacity",.92);});
+
+// clicking empty canvas closes the panel
+svg.on("click",()=>{ if(active){ active=null; hidePanel(); applyHighlight(); } });
+
+function hidePanel(){ panel.classed("show",false); }
+
+function applyHighlight(){
+  const neigh = active?adj.get(active):null;
+  nodeSel.classed("dim",d=>{
+    if(hiddenGroups.has(d.g))return true;
+    if(neigh)return !neigh.has(d.id);
+    return false;
+  });
+  linkSel.classed("dim",d=>{
+    const sg=nodeById.get(d.source.id||d.source).g, tg=nodeById.get(d.target.id||d.target).g;
+    if(hiddenGroups.has(sg)||hiddenGroups.has(tg))return true;
+    if(neigh)return !(neigh.has(d.source.id||d.source)&&neigh.has(d.target.id||d.target));
+    return false;
+  });
+}
+
+function renderPanel(d){
+  const c=groups[d.g].color;
+  let html=`<button class="close" id="panelClose" aria-label="关闭">×</button>`;
+  html+=`<div class="pk">概念详情</div>`;
+  html+=`<h2>${d.id}</h2>`;
+  html+=`<span class="tag" style="background:${c}">${d.info.tag}</span>`;
+  html+=`<p>${d.info.p}</p>`;
+  if(d.info.li){html+="<ul>"+d.info.li.map(x=>`<li>${x}</li>`).join("")+"</ul>";}
+  panel.html(html);
+  panel.select("#panelClose").on("click",(ev)=>{ ev.stopPropagation(); active=null; hidePanel(); applyHighlight(); });
+}
+
+// legend
+const legend=d3.select("#legend");
+Object.entries(groups).forEach(([k,v])=>{
+  const el=legend.append("div").attr("class","lg").attr("data-g",k);
+  el.append("span").attr("class","dot").style("background",v.color);
+  el.append("span").text(v.label);
+  el.on("click",function(){
+    if(hiddenGroups.has(k)){hiddenGroups.delete(k);d3.select(this).classed("off",false);}
+    else{hiddenGroups.add(k);d3.select(this).classed("off",true);}
+    applyHighlight();
+  });
+});
+
+// reset
+d3.select("#resetBtn").on("click",()=>{
+  active=null;hiddenGroups.clear();legend.selectAll(".lg").classed("off",false);
+  applyHighlight();
+  hidePanel();
+  svg.transition().duration(400).call(zoom.transform,d3.zoomIdentity);
+  sim.alpha(.6).restart();
+});
+</script>
+</div>
