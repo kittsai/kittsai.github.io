@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import DetailLayout from '../../layouts/DetailLayout.astro';
 import LeftSidebar from '../../components/LeftSidebar.astro';
-import TabBar from '../../components/TabBar.astro';
+import TabBar from '../../components/TabBar.tsx';
 import RightTOC from '../../components/RightTOC.astro';
 
 export async function getStaticPaths() {
@@ -31,7 +31,7 @@ try {
   <LeftSidebar slot="sidebar" currentSlug={note.id} />
 
   <div slot="main" class="main-content">
-    <TabBar />
+    <TabBar client:load />
 
     <div class="tab-panel active tab-original" id="tab-original">
       <div class="markdown-body">
