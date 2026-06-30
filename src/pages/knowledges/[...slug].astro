@@ -58,7 +58,7 @@ try {
   }
   .tab-panel.active.tab-ai { height: calc(100vh - 100px); }
 
-  .markdown-body { padding: 28px 32px; background: var(--paper); overflow-y: auto; overflow-x: hidden; height: 100%; max-width: 800px; }
+  .markdown-body { padding: 28px 32px; background: var(--paper); overflow-y: auto; overflow-x: hidden; height: 100%; min-width: 0; }
   .markdown-body :global(h2) { font-size: 22px; margin: 28px 0 12px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
   .markdown-body :global(h3) { font-size: 18px; margin: 22px 0 8px; }
   .markdown-body :global(h4) { font-size: 15px; margin: 18px 0 6px; }
@@ -78,6 +78,8 @@ try {
   .markdown-body :global(th), .markdown-body :global(td) { border: 1px solid var(--line); padding: 6px 10px; text-align: left; white-space: nowrap; }
   .markdown-body :global(th) { background: #efe7d8; font-weight: 700; }
   .markdown-body :global(pre) { max-width: 100%; overflow-x: auto; }
+  .markdown-body :global(img) { max-width: 100%; height: auto; }
+  .markdown-body :global(table) { table-layout: fixed; word-break: break-word; }
 
   .ai-embed { overflow-y: auto; height: 100%; background: var(--bg); }
   .ai-embed :global(.wrap) { max-width: 1100px; margin: 0 auto; padding: 24px 24px 60px; }
