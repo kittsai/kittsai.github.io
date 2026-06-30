@@ -44,7 +44,6 @@
   details.faq .body{padding:0 0 14px;font-size:14px;line-height:1.6;font-family:"Helvetica Neue",Arial,sans-serif;}
 </style>
 <div class="wrap">
-<div class="wrap">
   <header class="masthead">
     <div class="kicker">知识笔记 · 数据结构</div>
     <h1>Java 集合框架</h1>
@@ -308,8 +307,156 @@
   </footer>
 </div>
 
-<script src="https://d3js.org/d3.v7.min.js"></script>
 <script>
+const data = {
+  nodes: [
+    {id:"Iterable", label:"Iterable", group:"root", lvl:0,
+      tag:"根接口", detail:[["说明","所有单列集合的顶层接口，提供迭代能力。"]]},
+    {id:"Collection", label:"Collection", group:"coll", lvl:1,
+      tag:"单列集合根接口", detail:[["特点","单值存储，继承自 Iterable，表示一组元素。"]]},
+    {id:"Map", label:"Map", group:"map", lvl:1,
+      tag:"双列集合根接口", detail:[["特点","存储键值对，键唯一（由 equals 与 hashCode 判定），每个键最多映射一个值。"]]},
+
+    {id:"List", label:"List", group:"list", lvl:2,
+      tag:"接口", detail:[["特点","有序，可重复。"]]},
+    {id:"Set", label:"Set", group:"set", lvl:2,
+      tag:"接口", detail:[["特点","无序，不可重复。"]]},
+    {id:"Queue", label:"Queue", group:"queue", lvl:2,
+      tag:"接口", detail:[["数据结构","队列"],["特点","通常 FIFO，亦有优先级/双端变体。"],["线程安全","多数否；BlockingQueue 为是。"]]},
+
+    {id:"ArrayList", label:"ArrayList", group:"leaf", lvl:3,
+      tag:"List 实现", detail:[["数据结构","动态数组"],["查询","O(1)，内存连续按索引寻址"],["写入","尾部均摊 O(1)，首/中部 O(n)"],["扩容","首次 add→10，满后 1.5 倍"],["线程安全","否"],["场景","查多写少"]]},
+    {id:"LinkedList", label:"LinkedList", group:"leaf", lvl:3,
+      tag:"List 实现", detail:[["数据结构","双向链表"],["写入","O(1)，指针关联无需移动"],["查询","慢，需遍历"],["线程安全","否"],["场景","增删多查询少"]]},
+    {id:"Vector", label:"Vector", group:"leaf", lvl:3,
+      tag:"List 实现", detail:[["数据结构","动态数组"],["线程安全","是，方法加 synchronized"],["扩容","2 倍"]]},
+
+    {id:"HashSet", label:"HashSet", group:"leaf", lvl:3,
+      tag:"Set 实现", detail:[["底层","基于 HashMap，key 存数据、value 为固定 Object"],["顺序","无序"],["线程安全","否"]]},
+    {id:"LinkedHashSet", label:"LinkedHashSet", group:"leaf", lvl:3,
+      tag:"Set 实现", detail:[["底层","继承 HashSet，基于 LinkedHashMap"],["顺序","按插入顺序"],["线程安全","否"]]},
+    {id:"TreeSet", label:"TreeSet", group:"leaf", lvl:3,
+      tag:"Set 实现", detail:[["底层","基于 TreeMap（红黑树）"],["特点","有序、唯一"],["线程安全","否"]]},
+
+    {id:"HashMap", label:"HashMap", group:"leaf", lvl:3,
+      tag:"Map 实现", detail:[["数据结构","1.7 数组+链表；1.8 +红黑树"],["null","1 个 null 键，多个 null 值"],["扩容","负载因子 0.75，首次 put→16，满后 2 倍"],["树化","链长>8 且容量≥64 转红黑树；<6 退化"],["线程安全","否"]]},
+    {id:"LinkedHashMap", label:"LinkedHashMap", group:"leaf", lvl:3,
+      tag:"Map 实现", detail:[["数据结构","数组+双向链表+红黑树"],["说明","基于 HashMap 增加双向链表维护顺序"],["线程安全","否"]]},
+    {id:"TreeMap", label:"TreeMap", group:"leaf", lvl:3,
+      tag:"Map 实现", detail:[["数据结构","红黑树"],["特点","有序"],["线程安全","否"]]},
+    {id:"ConcurrentHashMap", label:"ConcurrentHashMap", group:"leaf", lvl:3,
+      tag:"Map 实现", detail:[["数据结构","1.7 Segment+HashEntry；1.8 Node+链表+红黑树"],["并发","1.7 分段锁；1.8 CAS+synchronized"],["扩容","多线程协作，ForwardingNode 标记，读无锁"],["线程安全","是"]]}
+  ],
+  links: [
+    {s:"Iterable",t:"Collection"},
+    {s:"Collection",t:"List"},{s:"Collection",t:"Set"},{s:"Collection",t:"Queue"},
+    {s:"List",t:"ArrayList"},{s:"List",t:"LinkedList"},{s:"List",t:"Vector"},
+    {s:"Set",t:"HashSet"},{s:"Set",t:"LinkedHashSet"},{s:"Set",t:"TreeSet"},
+    {s:"Map",t:"HashMap"},{s:"Map",t:"LinkedHashMap"},{s:"Map",t:"TreeMap"},{s:"Map",t:"ConcurrentHashMap"},
+    // implementation /底层依赖关系（虚线）
+    {s:"HashSet",t:"HashMap",kind:"impl"},
+    {s:"LinkedHashSet",t:"HashSet",kind:"impl"},
+    {s:"TreeSet",t:"TreeMap",kind:"impl"},
+    {s:"LinkedHashMap",t:"HashMap",kind:"impl"}
+  ]
+};
+
+const colorMap = {root:"#1c1a17",coll:"#c0392b",list:"#d97706",set:"#2f7d5b",
+  queue:"#8e6cc0",map:"#1f6f8b",leaf:"#3a3631"};
+const radius = {0:18,1:16,2:13,3:10};
+
+const gw = document.getElementById('gw');
+const svgEl = document.getElementById('svg');
+let W = gw.clientWidth, H = gw.clientHeight;
+
+const svg = d3.select('#svg').attr('viewBox',`0 0 ${W} ${H}`);
+const g = svg.append('g');
+
+const zoom = d3.zoom().scaleExtent([0.4,3]).on('zoom',(e)=>g.attr('transform',e.transform));
+svg.call(zoom);
+
+const links = data.links.map(d=>({source:d.s,target:d.t,kind:d.kind||"tree"}));
+const nodes = data.nodes.map(d=>({...d}));
+
+const sim = d3.forceSimulation(nodes)
+  .force('link', d3.forceLink(links).id(d=>d.id).distance(d=>d.kind==="impl"?70:90).strength(d=>d.kind==="impl"?0.25:0.8))
+  .force('charge', d3.forceManyBody().strength(-560))
+  .force('center', d3.forceCenter(W/2, H/2))
+  .force('collide', d3.forceCollide().radius(d=>radius[d.lvl]+22))
+  .force('x', d3.forceX(W/2).strength(0.04))
+  .force('y', d3.forceY(d=>d.lvl===1?H*0.32:d.lvl===0?H*0.16:H/2).strength(0.08));
+
+const link = g.append('g').selectAll('line').data(links).join('line')
+  .attr('class','link')
+  .attr('stroke-width',d=>d.kind==="impl"?1.2:1.8)
+  .attr('stroke-dasharray',d=>d.kind==="impl"?"4 4":null);
+
+const node = g.append('g').selectAll('g').data(nodes).join('g')
+  .attr('class','node')
+  .call(d3.drag()
+    .on('start',(e,d)=>{if(!e.active)sim.alphaTarget(.3).restart();d.fx=d.x;d.fy=d.y;})
+    .on('drag',(e,d)=>{d.fx=e.x;d.fy=e.y;})
+    .on('end',(e,d)=>{if(!e.active)sim.alphaTarget(0);d.fx=null;d.fy=null;}));
+
+node.append('circle')
+  .attr('r',d=>radius[d.lvl])
+  .attr('fill',d=>colorMap[d.group]);
+
+node.append('text')
+  .attr('y',d=>radius[d.lvl]+13)
+  .attr('text-anchor','middle')
+  .attr('font-size',d=>d.lvl<=1?13:11)
+  .text(d=>d.label);
+
+// detail panel
+const detail = document.getElementById('detail');
+document.getElementById('closeBtn').onclick=()=>{detail.classList.remove('show');resetHighlight();};
+let selected=null;
+
+node.on('click',(e,d)=>{
+  selected=d.id;
+  document.getElementById('dTag').textContent=d.tag;
+  document.getElementById('dTag').style.background=colorMap[d.group];
+  document.getElementById('dTitle').textContent=d.label;
+  const dl=document.getElementById('dBody');dl.innerHTML='';
+  d.detail.forEach(([k,v])=>{
+    const dt=document.createElement('dt');dt.textContent=k;
+    const dd=document.createElement('dd');dd.textContent=v;
+    dl.appendChild(dt);dl.appendChild(dd);
+  });
+  detail.classList.add('show');
+  highlight(d.id);
+});
+
+const adj={};
+links.forEach(l=>{
+  const s=l.source.id||l.source,t=l.target.id||l.target;
+  (adj[s]=adj[s]||new Set()).add(t);
+  (adj[t]=adj[t]||new Set()).add(s);
+});
+function highlight(id){
+  node.style('opacity',n=> n.id===id||(adj[id]&&adj[id].has(n.id))?1:0.18);
+  link.style('opacity',l=>{const s=l.source.id,t=l.target.id;return s===id||t===id?0.9:0.06;});
+}
+function resetHighlight(){node.style('opacity',1);link.style('opacity',null);selected=null;}
+svg.on('click',(e)=>{if(e.target===svgEl){detail.classList.remove('show');resetHighlight();}});
+
+sim.on('tick',()=>{
+  link.attr('x1',d=>d.source.x).attr('y1',d=>d.source.y)
+      .attr('x2',d=>d.target.x).attr('y2',d=>d.target.y);
+  node.attr('transform',d=>`translate(${d.x},${d.y})`);
+});
+
+const ro=new ResizeObserver(()=>{
+  W=gw.clientWidth;H=gw.clientHeight;
+  svg.attr('viewBox',`0 0 ${W} ${H}`);
+  sim.force('center',d3.forceCenter(W/2,H/2));
+  sim.force('x',d3.forceX(W/2).strength(0.04));
+  sim.alpha(0.3).restart();
+});
+ro.observe(gw);
+</script>
+<script src="https://artifactcdn.diabrowser.engineering/ajax/libs/d3/d3.min.js"></script>
 const data = {
   nodes: [
     {id:"Iterable", label:"Iterable", group:"root", lvl:0,
