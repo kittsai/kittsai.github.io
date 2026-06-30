@@ -16,7 +16,7 @@ const { Content } = await render(book);
 ---
 
 <DetailLayout title={book.data.title}>
-  <LeftSidebar slot="sidebar" currentSlug={book.id} />
+  <LeftSidebar slot="sidebar" currentSlug={book.id} mode="books" />
 
   <div slot="main" class="main-content">
     <div class="markdown-body">
