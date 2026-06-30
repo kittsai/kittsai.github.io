@@ -21,7 +21,7 @@ notes.forEach(note => {
         <ul style="list-style:none;padding:0;">
           {items.map(item => (
             <li style="margin-bottom:8px;">
-              <a href={`/knowledges/${item.slug}`} style="font-size:16px;color:var(--ink);text-decoration:none;padding:8px 12px;display:block;border-radius:6px;transition:background .15s;">
+              <a href={`/knowledges/${item.id}`} style="font-size:16px;color:var(--ink);text-decoration:none;padding:8px 12px;display:block;border-radius:6px;transition:background .15s;">
                 {item.data.title}
               </a>
             </li>

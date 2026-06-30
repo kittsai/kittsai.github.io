@@ -27,8 +27,8 @@ books.forEach(book => {
     <div class="sb-group">{cat}</div>
     <ul>
       {items.map(item => (
-        <li><a href={`/knowledges/${item.slug}`}
-               class:list={[{ active: item.slug === currentSlug }]}>
+        <li><a href={`/knowledges/${item.id}`}
+               class:list={[{ active: item.id === currentSlug }]}>
           {item.data.title}
         </a></li>
       ))}
@@ -38,8 +38,8 @@ books.forEach(book => {
     <div class="sb-group">📚 {cat}</div>
     <ul>
       {items.map(item => (
-        <li><a href={`/books/${item.slug}`}
-               class:list={[{ active: item.slug === currentSlug }]}>
+        <li><a href={`/books/${item.id}`}
+               class:list={[{ active: item.id === currentSlug }]}>
           {item.data.title}
         </a></li>
       ))}
