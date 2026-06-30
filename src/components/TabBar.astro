@@ -1,0 +1,62 @@
+---
+---
+<div class="tab-bar">
+  <button class="tab-btn active" data-tab="original">原文</button>
+  <button class="tab-btn" data-tab="ai">AI 摘要</button>
+</div>
+
+<script>
+  function initTabs() {
+    const btns = document.querySelectorAll('[data-tab]');
+    const original = document.getElementById('tab-original');
+    const ai = document.getElementById('tab-ai');
+    if (!btns.length || !original || !ai) return;
+
+    btns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        btns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        if (btn.dataset.tab === 'original') {
+          original.classList.add('active');
+          ai.classList.remove('active');
+        } else {
+          ai.classList.add('active');
+          original.classList.remove('active');
+        }
+      });
+    });
+  }
+  document.addEventListener('DOMContentLoaded', initTabs);
+</script>
+
+<style>
+  .tab-bar {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--line);
+    font-family: "Helvetica Neue", Arial, sans-serif;
+  }
+  .tab-btn {
+    padding: 12px 24px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    position: relative;
+    transition: color .15s;
+  }
+  .tab-btn:hover { color: var(--ink); }
+  .tab-btn.active { color: var(--accent); }
+  .tab-btn.active::after {
+    content: "";
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--accent);
+  }
+</style>

@@ -1,0 +1,44 @@
+---
+---
+<nav>
+  <a href="/" class="logo">kit-docs</a>
+  <div class="links">
+    <a href="/">首页</a>
+    <a href="/knowledges/">知识笔记</a>
+    <a href="/books/">读书记录</a>
+  </div>
+</nav>
+
+<style>
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(244, 239, 230, .92);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    height: 52px;
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    font-size: 13px;
+  }
+  .logo {
+    font-weight: 800;
+    font-size: 16px;
+    color: var(--ink);
+    letter-spacing: -.02em;
+    margin-right: 36px;
+    text-decoration: none;
+  }
+  .logo:hover { text-decoration: none; }
+  .links { display: flex; gap: 24px; }
+  .links a {
+    color: var(--muted);
+    font-weight: 500;
+    transition: color .15s;
+    text-decoration: none;
+  }
+  .links a:hover { color: var(--ink); text-decoration: none; }
+</style>

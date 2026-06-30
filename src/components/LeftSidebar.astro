@@ -1,0 +1,85 @@
+---
+import { getCollection } from 'astro:content';
+
+interface Props { currentSlug: string; }
+const { currentSlug } = Astro.props;
+
+const notes = await getCollection('knowledges');
+const books = await getCollection('books');
+
+const categories: Record<string, typeof notes> = {};
+notes.forEach(note => {
+  const cat = note.data.category || '未分类';
+  if (!categories[cat]) categories[cat] = [];
+  categories[cat].push(note);
+});
+
+const bookSections: Record<string, typeof books> = {};
+books.forEach(book => {
+  const cat = book.data.category || '读书记录';
+  if (!bookSections[cat]) bookSections[cat] = [];
+  bookSections[cat].push(book);
+});
+---
+<aside class="left-sidebar">
+  <div class="sb-title">知识笔记</div>
+  {Object.entries(categories).map(([cat, items]) => (
+    <div class="sb-group">{cat}</div>
+    <ul>
+      {items.map(item => (
+        <li><a href={`/knowledges/${item.slug}`}
+               class:list={[{ active: item.slug === currentSlug }]}>
+          {item.data.title}
+        </a></li>
+      ))}
+    </ul>
+  ))}
+  {Object.entries(bookSections).map(([cat, items]) => (
+    <div class="sb-group">📚 {cat}</div>
+    <ul>
+      {items.map(item => (
+        <li><a href={`/books/${item.slug}`}
+               class:list={[{ active: item.slug === currentSlug }]}>
+          {item.data.title}
+        </a></li>
+      ))}
+    </ul>
+  ))}
+</aside>
+
+<style>
+  .left-sidebar {
+    border-right: 1px solid var(--line);
+    padding: 20px 0 20px 20px;
+    overflow-y: auto;
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    font-size: 13px;
+  }
+  .sb-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .15em;
+    color: var(--muted);
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  .sb-group {
+    font-weight: 700;
+    color: var(--ink);
+    padding: 5px 10px;
+    font-size: 12px;
+    margin-top: 8px;
+  }
+  ul { list-style: none; padding-left: 0; }
+  li { margin: 1px 0; }
+  a {
+    display: block;
+    padding: 5px 10px;
+    border-radius: 5px;
+    color: var(--muted);
+    transition: all .15s;
+    text-decoration: none;
+  }
+  a:hover { color: var(--ink); background: rgba(176, 58, 46, .05); }
+  a.active { color: var(--accent); background: rgba(176, 58, 46, .08); font-weight: 600; }
+</style>

@@ -1,0 +1,23 @@
+---
+import BaseLayout from './BaseLayout.astro';
+
+interface Props { title: string; }
+const { title } = Astro.props;
+---
+<BaseLayout title={title}>
+  <div class="detail-layout">
+    <slot name="sidebar" />
+    <slot name="main" />
+  </div>
+</BaseLayout>
+
+<style>
+  .detail-layout {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    height: calc(100vh - 52px);
+  }
+  @media (max-width: 768px) {
+    .detail-layout { grid-template-columns: 1fr; }
+  }
+</style>

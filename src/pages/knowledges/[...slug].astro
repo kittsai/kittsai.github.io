@@ -1,0 +1,89 @@
+---
+import { getCollection, render } from 'astro:content';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import DetailLayout from '../../layouts/DetailLayout.astro';
+import LeftSidebar from '../../components/LeftSidebar.astro';
+import TabBar from '../../components/TabBar.astro';
+import RightTOC from '../../components/RightTOC.astro';
+
+export async function getStaticPaths() {
+  const notes = await getCollection('knowledges');
+  return notes.map(note => ({
+    params: { slug: note.id },
+    props: { note },
+  }));
+}
+
+const { note } = Astro.props;
+const { Content, headings } = await render(note);
+
+let aiSummaryHtml = '';
+try {
+  const summaryPath = join(process.cwd(), 'summaries', `${note.id}.html`);
+  aiSummaryHtml = readFileSync(summaryPath, 'utf-8');
+} catch {
+  aiSummaryHtml = '<div class="no-summary">暂无 AI 摘要，请先生成。</div>';
+}
+---
+
+<DetailLayout title={note.data.title}>
+  <LeftSidebar slot="sidebar" currentSlug={note.id} />
+
+  <div slot="main" class="main-content">
+    <TabBar />
+
+    <div class="tab-panel active tab-original" id="tab-original">
+      <div class="markdown-body">
+        <Content />
+      </div>
+      <RightTOC headings={headings} />
+    </div>
+
+    <div class="tab-panel tab-ai" id="tab-ai">
+      <div class="ai-embed" set:html={aiSummaryHtml} />
+    </div>
+  </div>
+</DetailLayout>
+
+<style>
+  .main-content { overflow: hidden; height: 100%; }
+
+  .tab-panel { display: none; border: 1px solid var(--line); border-top: none; border-radius: 0 0 10px 10px; overflow: hidden; }
+  .tab-panel.active { display: block; }
+  .tab-panel.active.tab-original {
+    display: grid;
+    grid-template-columns: 1fr 200px;
+    height: calc(100vh - 100px);
+  }
+  .tab-panel.active.tab-ai { height: calc(100vh - 100px); }
+
+  .markdown-body { padding: 28px 32px; background: var(--paper); overflow-y: auto; height: 100%; }
+  .markdown-body :global(h2) { font-size: 22px; margin: 28px 0 12px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+  .markdown-body :global(h3) { font-size: 18px; margin: 22px 0 8px; }
+  .markdown-body :global(h4) { font-size: 15px; margin: 18px 0 6px; }
+  .markdown-body :global(p) { margin: 8px 0; font-size: 14px; }
+  .markdown-body :global(ul), .markdown-body :global(ol) { padding-left: 22px; margin: 6px 0; }
+  .markdown-body :global(li) { margin: 4px 0; font-size: 14px; }
+  .markdown-body :global(blockquote) {
+    border-left: 3px solid var(--accent);
+    padding: 8px 16px;
+    margin: 12px 0;
+    background: rgba(176, 58, 46, .04);
+    border-radius: 0 6px 6px 0;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .markdown-body :global(table) { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+  .markdown-body :global(th), .markdown-body :global(td) { border: 1px solid var(--line); padding: 6px 10px; text-align: left; }
+  .markdown-body :global(th) { background: #efe7d8; font-weight: 700; }
+
+  .ai-embed { overflow-y: auto; height: 100%; background: var(--bg); }
+  .ai-embed :global(.wrap) { max-width: 1100px; margin: 0 auto; padding: 24px 24px 60px; }
+
+  .no-summary { padding: 40px; text-align: center; color: var(--muted); font-family: "Helvetica Neue", Arial, sans-serif; }
+
+  @media (max-width: 768px) {
+    .tab-panel.active.tab-original { grid-template-columns: 1fr; }
+  }
+</style>
