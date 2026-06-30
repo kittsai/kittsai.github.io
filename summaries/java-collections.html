@@ -29,16 +29,13 @@
   .panel ul{margin:0 0 12px;padding-left:18px;}
   .panel li{font-size:14px;line-height:1.5;margin-bottom:6px;color:#332f26;}
   .summary h2.sec{font-size:13px;font-family:"Helvetica Neue",Arial,sans-serif;text-transform:uppercase;letter-spacing:.22em;color:var(--accent);border-bottom:1px solid var(--line);padding-bottom:8px;margin:38px 0 18px;}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:16px;}
-  .card{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:16px 18px;box-shadow:0 6px 18px rgba(40,30,15,.05);}
-  .card h3{margin:0 0 4px;font-size:18px;display:flex;align-items:center;gap:8px;}
-  .card h3 .pip{width:10px;height:10px;border-radius:2px;display:inline-block;}
-  .card .sub{font-family:"Helvetica Neue",Arial,sans-serif;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;}
-  .card ul{margin:8px 0 0;padding-left:18px;font-size:14px;line-height:1.55;}
-  .card ul li{margin-bottom:4px;}
-  .card .ts{font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:11px;background:#efe7d8;padding:1px 6px;border-radius:4px;color:#5b4a32;}
-  .safe-no{color:#b03a2e;font-weight:700;}
-  .safe-yes{color:#2f7d5b;font-weight:700;}
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:16px;}
+  .topic{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:16px 18px;box-shadow:0 6px 18px rgba(40,30,15,.05);border-top:3px solid var(--accent);}
+  .topic h3{margin:0 0 4px;font-size:18px;}
+  .topic .sub{font-family:"Helvetica Neue",Arial,sans-serif;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;}
+  .topic ul{margin:8px 0 0;padding-left:18px;font-size:14px;line-height:1.55;}
+  .topic ul li{margin-bottom:4px;}
+  .ts{font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:11px;background:#efe7d8;padding:1px 6px;border-radius:4px;color:#5b4a32;}
   details.faq{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:0 16px;margin-bottom:10px;}
   details.faq summary{cursor:pointer;padding:13px 0;font-weight:700;font-size:15px;list-style:none;display:flex;justify-content:space-between;align-items:center;}
   details.faq summary::-webkit-details-marker{display:none;}
