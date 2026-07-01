@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MySQL 知识图谱</title>
+<script src="https://artifactcdn.diabrowser.engineering/ajax/libs/d3/d3.min.js"></script>
+<style>
+  :root{
+    --bg:#eef1f5;
+    --paper:#fbfcfe;
+    --ink:#17212e;
+    --muted:#5c6b7d;
+    --line:#d3dbe6;
+    --c-root:#00618a;      /* MySQL 海豚蓝 */
+    --c-arch:#2b7a9b;
+    --c-mem:#c9791f;       /* InnoDB 暖橙 */
+    --c-index:#3f7d54;
+    --c-tx:#8a4f8f;
+    --c-lock:#b0464f;
+    --c-log:#4a5fa8;
+    --accent:#00618a;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);color:var(--ink);
+    font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1400px;margin:0 auto;padding:32px 28px 80px;}
+  header.masthead{border-bottom:3px double var(--ink);padding-bottom:18px;margin-bottom:24px;}
+  .kicker{font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--accent);margin-bottom:8px;}
+  h1{font-size:clamp(34px,5vw,56px);line-height:1.02;margin:0 0 10px;font-weight:700;letter-spacing:-.01em;}
+  .dek{font-size:17px;color:var(--muted);max-width:820px;line-height:1.5;margin:0;}
+  .layout{display:block;}
+
+  .graph-card{background:var(--paper);border:1px solid var(--line);border-radius:4px;position:relative;overflow:hidden;box-shadow:0 1px 0 #fff inset, 0 8px 26px rgba(20,35,55,.09);}
+  .graph-head{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--line);font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
+  .legend{display:flex;flex-wrap:wrap;gap:10px;}
+  .lg{display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none;opacity:.95;}
+  .lg .dot{width:11px;height:11px;border-radius:50%;display:inline-block;}
+  .lg.off{opacity:.32;text-decoration:line-through;}
+  #graph{width:100%;height:clamp(540px,74vh,820px);display:block;}
+  .controls{display:flex;gap:8px;align-items:center;}
+  .btn{font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:11px;background:var(--ink);color:var(--paper);border:none;border-radius:3px;padding:5px 10px;cursor:pointer;letter-spacing:.06em;}
+  .btn:hover{background:var(--accent);}
+
+  .node circle{cursor:pointer;stroke:#fbfcfe;stroke-width:1.5px;transition:opacity .2s;}
+  .node text{font-family:"Iowan Old Style",Palatino,Georgia,serif;fill:var(--ink);pointer-events:none;paint-order:stroke;stroke:rgba(251,252,254,.85);stroke-width:3px;}
+  .link{stroke:#9aabbe;stroke-opacity:.5;fill:none;}
+  .node.dim{opacity:.12;}
+  .link.dim{stroke-opacity:.06;}
+
+  aside.panel{
+    position:absolute;top:64px;right:16px;width:340px;max-width:calc(100% - 32px);
+    max-height:calc(100% - 84px);overflow-y:auto;
+    background:rgba(251,252,254,.97);backdrop-filter:blur(6px);
+    border:1px solid var(--line);border-radius:6px;padding:18px 18px 20px;
+    box-shadow:0 10px 34px rgba(20,35,55,.18);
+    opacity:0;transform:translateY(-6px) scale(.98);pointer-events:none;
+    transition:opacity .22s ease, transform .22s ease;z-index:5;
+  }
+  aside.panel.show{opacity:1;transform:none;pointer-events:auto;}
+  .panel .close{position:absolute;top:10px;right:12px;border:none;background:none;font-size:20px;line-height:1;color:var(--muted);cursor:pointer;padding:2px 4px;}
+  .panel .close:hover{color:var(--accent);}
+  .panel .pk{font-family:"SF Mono",ui-monospace,monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);}
+  .panel h2{font-size:22px;margin:6px 22px 4px 0;line-height:1.12;}
+  .panel .tag{display:inline-block;font-family:"SF Mono",monospace;font-size:10px;padding:2px 8px;border-radius:20px;color:#fff;letter-spacing:.05em;margin-bottom:14px;}
+  .panel p{font-size:15px;line-height:1.55;color:#20303f;margin:0 0 12px;}
+  .panel ul{margin:0 0 12px;padding-left:18px;}
+  .panel li{font-size:14px;line-height:1.5;margin-bottom:6px;color:#28384a;}
+  .panel li b{color:var(--ink);}
+  code{font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:.86em;background:#e4ebf3;padding:1px 5px;border-radius:3px;}
+
+  .summary{margin-top:44px;border-top:3px double var(--ink);padding-top:30px;}
+  .summary h2.sec{font-size:13px;font-family:"SF Mono",monospace;letter-spacing:.24em;text-transform:uppercase;color:var(--accent);margin:0 0 22px;}
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:20px;}
+  .topic{background:var(--paper);border:1px solid var(--line);border-radius:4px;padding:20px 20px 22px;border-top:4px solid var(--c-root);}
+  .topic h3{margin:0 0 4px;font-size:20px;}
+  .topic .sub{font-family:"SF Mono",monospace;font-size:11px;color:var(--muted);letter-spacing:.06em;margin-bottom:12px;text-transform:uppercase;}
+  .topic ul{margin:0;padding-left:18px;}
+  .topic li{font-size:14px;line-height:1.5;margin-bottom:7px;}
+  .topic li b{color:var(--ink);}
+  table.cmp{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px;}
+  table.cmp th,table.cmp td{border:1px solid var(--line);padding:5px 7px;text-align:left;vertical-align:top;}
+  table.cmp th{background:#e4ebf3;font-family:"SF Mono",monospace;font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;}
+  .footnote{margin-top:40px;color:var(--muted);font-size:13px;font-style:italic;text-align:center;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="masthead">
+    <div class="kicker">知识笔记 · 结构化总结 + 交互式知识图谱</div>
+    <h1>MySQL 全景</h1>
+    <p class="dek">从整体架构、InnoDB 内存结构、索引,到事务、MVCC/锁与三大日志,一篇笔记的完整脉络。点击任意节点查看详情,可拖拽节点、滚轮缩放。</p>
+  </header>
+
+  <div class="layout">
+    <div class="graph-card">
+      <div class="graph-head">
+        <div class="legend" id="legend"></div>
+        <div class="controls"><button class="btn" id="resetBtn">重置布局</button></div>
+      </div>
+      <svg id="graph"></svg>
+      <aside class="panel" id="panel"></aside>
+    </div>
+  </div>
+
+  <section class="summary">
+    <h2 class="sec">结构化总结</h2>
+    <div class="cards">
+
+      <div class="topic" style="border-top-color:var(--c-arch)">
+        <h3>整体架构</h3>
+        <div class="sub">Server 层 + 存储引擎层</div>
+        <ul>
+          <li><b>Server 层</b>:连接器(连接/鉴权)→ 分析器(词法语法)→ 优化器(索引/执行计划)→ 执行器(调引擎接口)。</li>
+          <li><b>存储引擎层</b>:<b>InnoDB</b>(默认,ACID/行锁/MVCC/外键)、<b>MyISAM</b>(早期,不支持事务,表锁)。</li>
+          <li>客户端-服务端模型,存储引擎可插拔。</li>
+        </ul>
+      </div>
+
+      <div class="topic" style="border-top-color:var(--c-mem)">
+        <h3>InnoDB 内存结构</h3>
+        <div class="sub">Buffer Pool + Log Buffer</div>
+        <ul>
+          <li><b>Buffer Pool</b>:最大内存区,以<b>页(16KB)</b>缓存数据/索引页,含 Change Buffer、AHI、锁信息、数据字典。</li>
+          <li><b>三大链表</b>:Free(空闲页)、LRU(Young 热 / Old 冷,防全表扫描冲走热数据)、Flush(脏页按变脏时间排序)。</li>
+          <li><b>Log Buffer</b>:独立缓存 redo 条目,顺序写;刷盘时机:提交(=1)、半满、后台每秒。</li>
+          <li><b>WAL</b>:先写 redo,改脏页,后台择机刷盘。</li>
+        </ul>
+      </div>
+
+      <div class="topic" style="border-top-color:var(--c-index)">
+        <h3>索引</h3>
+        <div class="sub">B+ 树 · 聚簇 / 二级</div>
+        <ul>
+          <li><b>聚簇索引</b>(主键):叶子存完整行;<b>二级索引</b>:叶子存 索引列+主键,不覆盖时<b>回表</b>。</li>
+          <li><b>最左前缀</b>、<b>覆盖索引</b>(免回表)、<b>索引下推</b>(5.6+ 引擎层提前过滤)、<b>前缀索引</b>(取前缀省空间)。</li>
+          <li><b>为何 B+ 树而非 B 树</b>:树矮、磁盘 IO 少、叶子双向链表利于范围查询与排序。</li>
+        </ul>
+      </div>
+
+      <div class="topic" style="border-top-color:var(--c-tx)">
+        <h3>事务与隔离级别</h3>
+        <div class="sub">ACID · 在引擎层实现</div>
+        <ul>
+          <li><b>ACID</b>:原子性(undo log)、一致性(约束+锁+undo)、隔离性(锁+MVCC)、持久性(redo log)。</li>
+          <li><b>读未提交</b>→脏读;<b>读已提交 RC</b>(每次读建 Read View);<b>可重复读 RR</b>(默认,启动时建 Read View);<b>串行化</b>(读写加锁)。</li>
+          <li>三类问题:脏读、不可重复读、幻读(RR 部分避免)。</li>
+        </ul>
+      </div>
+
+      <div class="topic" style="border-top-color:var(--c-tx)">
+        <h3>MVCC</h3>
+        <div class="sub">多版本并发控制</div>
+        <ul>
+          <li><b>隐藏字段</b>:<code>DB_TRX_ID</code>(最新事务 ID)+ <code>DB_ROLL_PTR</code>(指向 undo 版本链)。</li>
+          <li><b>undo log 版本链</b>:更新前写旧版本形成链;<b>Read View</b> 用活跃事务 ID 判断可见性。</li>
+          <li>RR:首次快照读生成后复用;RC:每次快照读都新建。</li>
+          <li><b>当前读</b>(update/delete/for update):读最新版本并加行锁/间隙锁/临键锁;insert 产生插入意向锁。</li>
+        </ul>
+      </div>
+
+      <div class="topic" style="border-top-color:var(--c-lock)">
+        <h3>锁</h3>
+        <div class="sub">表级 / 行级</div>
+        <ul>
+          <li><b>表级</b>:表锁(手动整表串行)、元数据锁 MDL(护表结构)、意向锁 IS/IX(行锁前声明)、自增锁 AUTO-INC。</li>
+          <li><b>行级(InnoDB)</b>:行锁 S/X + 三算法(行锁/间隙锁/临键锁)、插入意向锁(INSERT 排队信号)。</li>
+          <li><b>死锁</b>:并发事务互相等待锁资源的循环等待现象。</li>
+        </ul>
+      </div>
+
+      <div class="topic" style="border-top-color:var(--c-log)">
+        <h3>三大日志</h3>
+        <div class="sub">redo / undo / binlog</div>
+        <ul>
+          <li><b>redo log</b>(引擎层,物理逻辑):记"某页偏移做了某修改",支撑 WAL、循环写、保证持久性。</li>
+          <li><b>undo log</b>(引擎层,逻辑):记行旧版本,用于回滚 + MVCC 版本链,保证原子性/一致性。</li>
+          <li><b>binlog</b>(Server 层,逻辑):记 SQL/行变化,用于主从复制与时间点恢复。</li>
+        </ul>
+      </div>
+
+      <div class="topic" style="border-top-color:var(--c-log)">
+        <h3>两阶段提交</h3>
+        <div class="sub">redo 与 binlog 一致性</div>
+        <ul>
+          <li><b>prepare</b>:写 redo log 并标记 prepare。</li>
+          <li><b>写 binlog</b>:变更写入 binlog。</li>
+          <li><b>commit</b>:redo log 标记 commit,事务完成。</li>
+          <li><b>崩溃恢复</b>:redo 为 prepare 且 binlog 完整则提交,否则回滚。</li>
+        </ul>
+      </div>
+
+      <div class="topic" style="border-top-color:var(--c-tx)">
+        <h3>隔离级别对照</h3>
+        <div class="sub">三类并发问题</div>
+        <table class="cmp">
+          <tr><th>级别</th><th>脏读</th><th>不可重复读</th><th>幻读</th></tr>
+          <tr><td>读未提交</td><td>可能</td><td>可能</td><td>可能</td></tr>
+          <tr><td>读已提交 RC</td><td>避免</td><td>可能</td><td>可能</td></tr>
+          <tr><td>可重复读 RR</td><td>避免</td><td>避免</td><td>部分避免</td></tr>
+          <tr><td>串行化</td><td>避免</td><td>避免</td><td>避免</td></tr>
+        </table>
+      </div>
+
+    </div>
+    <p class="footnote">源自笔记《MySQL · kit-docs》。图谱与卡片为结构化重组,便于复习与检索。</p>
+  </section>
+</div>
+
+<script>
+const groups = {
+  root:  {label:"MySQL 核心", color:"#00618a"},
+  arch:  {label:"整体架构",   color:"#2b7a9b"},
+  mem:   {label:"InnoDB 内存",color:"#c9791f"},
+  index: {label:"索引",       color:"#3f7d54"},
+  tx:    {label:"事务/MVCC",  color:"#8a4f8f"},
+  lock:  {label:"锁",         color:"#b0464f"},
+  log:   {label:"日志",       color:"#4a5fa8"}
+};
+
+const nodes = [
+  {id:"MySQL", g:"root", r:26, info:{tag:"核心",p:"开源关系型数据库,客户端-服务端模型,支持可插拔存储引擎。",li:["<b>两层架构</b>:Server 层 + 存储引擎层","核心引擎 <b>InnoDB</b> 支持 ACID、行锁、MVCC"]}},
+
+  {id:"整体架构", g:"arch", r:19, info:{tag:"架构",p:"分为 Server 层与存储引擎层。",li:["<b>Server 层</b>:连接器、分析器、优化器、执行器","<b>存储引擎层</b>:InnoDB(默认)、MyISAM(早期)"]}},
+  {id:"Server 层", g:"arch", r:14, info:{tag:"架构 · Server",p:"处理 SQL 的四个组件,引擎无关。",li:["<b>连接器</b>:建 TCP 连接、鉴权、维持会话","<b>分析器</b>:词法/语法分析,验证 SQL 合法性","<b>优化器</b>:优化 SQL、选索引、选最优执行计划","<b>执行器</b>:调用引擎读写接口交互"]}},
+  {id:"存储引擎层", g:"arch", r:14, info:{tag:"架构 · 引擎",p:"可插拔的存储引擎。",li:["<b>InnoDB</b>:默认,支持 ACID、行锁、MVCC、外键","<b>MyISAM</b>:早期默认,不支持事务、表级锁"]}},
+
+  {id:"InnoDB 内存", g:"mem", r:18, info:{tag:"InnoDB",p:"两块核心内存:Buffer Pool 与 Log Buffer。",li:["<b>Buffer Pool</b>:数据与索引缓存池","<b>Log Buffer</b>:redo log 的缓存"]}},
+  {id:"Buffer Pool", g:"mem", r:16, info:{tag:"内存 · 缓存池",p:"InnoDB 最大内存区,以页(默认 16KB)缓存,所有读写优先经过它。",li:["缓存:数据页/索引页(B+Tree 节点)","<b>Change Buffer</b>:非唯一二级索引改动暂存,减少随机 I/O","<b>自适应哈希索引 AHI</b>:高频页构哈希,加速等值查询","还含锁信息、数据字典"]}},
+  {id:"三大链表", g:"mem", r:14, info:{tag:"内存 · 页管理",p:"Buffer Pool 用三张链表管理缓存页生命周期。",li:["<b>Free 链表</b>:空闲页,加载新页时从这取","<b>LRU 链表</b>:分 Young(热)/Old(冷),新页先入 Old 头,存活并再访问才晋升 Young,防全表扫描冲走热数据","<b>Flush 链表</b>:脏页按变脏时间排序,后台按序刷盘并更新 LSN"]}},
+  {id:"Log Buffer", g:"mem", r:14, info:{tag:"内存 · 日志缓存",p:"独立于 Buffer Pool,专门缓存 redo log 条目。",li:["<b>为何独立</b>:redo 顺序写(环形),与数据页随机访问不同,避免争抢空间","<b>刷盘时机</b>:事务提交(=1)、半满(50%)、后台每秒","默认 16MB,写密集场景可调大"]}},
+  {id:"WAL 工作流", g:"mem", r:13, info:{tag:"内存 · 协同",p:"Write-Ahead Log:先写日志,再改数据。",li:["<b>读</b>:查 Buffer Pool,命中返回;未命中从磁盘读入空闲页","<b>写(UPDATE)</b>:先写 Log Buffer(redo)→ 改数据页成脏页入 Flush 链表 → 改 undo 页(也产 redo)","提交时 redo 刷盘,脏页留待后台刷盘"]}},
+
+  {id:"索引", g:"index", r:18, info:{tag:"索引",p:"InnoDB 索引数据结构为 B+ 树。",li:["<b>聚簇索引</b>(主键):叶子存完整行数据","<b>二级索引</b>:叶子存 索引列+主键,不覆盖时需<b>回表</b>","叶子间双向链表连接"]}},
+  {id:"索引优化概念", g:"index", r:14, info:{tag:"索引 · 优化",p:"提升查询效率的关键概念。",li:["<b>最左前缀</b>:按联合索引字段顺序查询","<b>覆盖索引</b>:索引含全部查询字段,无需回表","<b>索引下推</b>(5.6+):引擎层提前过滤,减少回表","<b>前缀索引</b>:长字符串取前缀,省空间"]}},
+  {id:"B+树 vs B树", g:"index", r:13, info:{tag:"索引 · 结构",p:"为什么 InnoDB 选 B+ 树。",li:["<b>树高低</b>:非叶子只存索引,单节点存更多键 → 磁盘 IO 少","<b>叶子双向链表</b>:天然支持范围查询与排序","B 树数据分散在各层,范围查询需回溯"]}},
+
+  {id:"事务", g:"tx", r:18, info:{tag:"事务",p:"一组操作要么全成功要么全失败,在存储引擎层实现(InnoDB 支持,MyISAM 不支持)。",li:["<b>ACID</b>:原子性(undo)、一致性(约束+锁+undo)、隔离性(锁+MVCC)、持久性(redo)"]}},
+  {id:"隔离级别", g:"tx", r:15, info:{tag:"事务 · 隔离",p:"四种隔离级别,通过 Read View 时机区分。",li:["<b>读未提交</b>:直接读最新值,不建 Read View","<b>读已提交 RC</b>:每次执行 SQL 建 Read View","<b>可重复读 RR</b>(默认):事务启动时建 Read View","<b>串行化</b>:读写加锁,冲突则等待","问题:脏读/不可重复读/幻读"]}},
+  {id:"MVCC", g:"tx", r:16, info:{tag:"事务 · 并发",p:"多版本并发控制,读不加锁读快照。",li:["<b>隐藏字段</b>:DB_TRX_ID + DB_ROLL_PTR(指向 undo 版本链)","<b>undo 版本链</b>:更新前写旧版本形成链","<b>Read View</b>:活跃事务 ID 列表判断可见性","RR 首次快照读生成并复用;RC 每次新建"]}},
+  {id:"当前读", g:"tx", r:13, info:{tag:"事务 · 当前读",p:"update/delete/select...for update 读最新版本。",li:["按 SQL 判断加行锁/间隙锁/临键锁,防改动或间隙插入","insert 产生<b>插入意向锁</b>","插入意向锁与间隙锁互斥,需等间隙锁释放"]}},
+
+  {id:"锁", g:"lock", r:17, info:{tag:"锁",p:"分表级锁与行级锁。",li:["<b>表级</b>:表锁、元数据锁 MDL、意向锁 IS/IX、自增锁 AUTO-INC","<b>行级(InnoDB)</b>:行锁 S/X + 三算法、插入意向锁","<b>死锁</b>:并发事务互相等待锁的循环等待"]}},
+  {id:"行锁算法", g:"lock", r:13, info:{tag:"锁 · 行级",p:"InnoDB 行锁的三种算法。",li:["<b>行锁(Record Lock)</b>:锁单行","<b>间隙锁(Gap Lock)</b>:锁记录间隙,防幻读插入","<b>临键锁(Next-Key)</b>:行锁+间隙锁,锁定范围"]}},
+
+  {id:"三大日志", g:"log", r:17, info:{tag:"日志",p:"redo/undo(引擎层) + binlog(Server 层)。",li:["<b>redo/undo</b>:InnoDB 独有,物理记录页变更或旧数据","<b>binlog</b>:Server 层产生,与引擎无关,逻辑记录 SQL/行变化"]}},
+  {id:"redo log", g:"log", r:14, info:{tag:"日志 · redo",p:"重做日志,物理逻辑日志,保证持久性。",li:["记录『某页偏移量做了某修改』,含所有数据页(含 undo)物理变更","<b>WAL</b>:先写日志→改 Buffer Pool→脏页后台刷盘","<b>循环写</b>(环形)"]}},
+  {id:"undo log", g:"log", r:14, info:{tag:"日志 · undo",p:"回滚日志,逻辑日志,记录行旧版本。",li:["用于<b>事务回滚</b>和构建 <b>MVCC 版本链</b>","保证原子性与一致性"]}},
+  {id:"binlog", g:"log", r:14, info:{tag:"日志 · binlog",p:"归档日志,Server 层逻辑日志。",li:["记录 SQL 或行变化","用于<b>主从复制</b>和基于时间点的恢复"]}},
+  {id:"两阶段提交", g:"log", r:14, info:{tag:"日志 · 一致性",p:"保证 redo log 与 binlog 在提交时一致。",li:["<b>prepare</b>:写 redo,标记 prepare 状态","<b>写 binlog</b>:变更写入 binlog","<b>commit</b>:redo 标记 commit,事务完成","崩溃恢复:redo=prepare 且 binlog 完整则提交,否则回滚"]}}
+];
+
+const links = [
+  ["MySQL","整体架构"],["MySQL","InnoDB 内存"],["MySQL","索引"],["MySQL","事务"],["MySQL","锁"],["MySQL","三大日志"],
+
+  ["整体架构","Server 层"],["整体架构","存储引擎层"],
+
+  ["InnoDB 内存","Buffer Pool"],["InnoDB 内存","Log Buffer"],["Buffer Pool","三大链表"],["InnoDB 内存","WAL 工作流"],
+  ["存储引擎层","InnoDB 内存"],
+
+  ["索引","索引优化概念"],["索引","B+树 vs B树"],["Buffer Pool","索引"],
+
+  ["事务","隔离级别"],["事务","MVCC"],["MVCC","当前读"],["隔离级别","MVCC"],
+  ["当前读","锁"],
+
+  ["锁","行锁算法"],
+
+  ["三大日志","redo log"],["三大日志","undo log"],["三大日志","binlog"],["三大日志","两阶段提交"],
+  ["redo log","WAL 工作流"],["undo log","MVCC"],["事务","三大日志"],["redo log","两阶段提交"],["binlog","两阶段提交"]
+];
+
+const nodeById = new Map(nodes.map(n=>[n.id,n]));
+const linkObjs = links.map(([s,t])=>({source:s,target:t}));
+const adj = new Map(nodes.map(n=>[n.id,new Set([n.id])]));
+linkObjs.forEach(l=>{adj.get(l.source).add(l.target);adj.get(l.target).add(l.source);});
+
+const svg = d3.select("#graph");
+const root = svg.append("g");
+const linkSel = root.append("g").selectAll("line").data(linkObjs).join("line").attr("class","link").attr("stroke-width",d=>nodeById.get(d.source).g==="root"?1.4:1);
+const nodeSel = root.append("g").selectAll("g").data(nodes).join("g").attr("class","node");
+
+nodeSel.append("circle").attr("r",d=>d.r).attr("fill",d=>groups[d.g].color).attr("opacity",.92);
+nodeSel.append("text").text(d=>d.id).attr("text-anchor","middle").attr("dy",d=>d.r+15)
+  .attr("font-size",d=>d.g==="root"?16:(d.r>=18?14:12.5)).attr("font-weight",d=>d.r>=18?700:500);
+
+const VW=1240, VH=800, CX=VW/2, CY=VH/2;
+const groupAngle={arch:-160,mem:-95,index:-30,tx:35,lock:100,log:165};
+const RING=250;
+const rad=d=>d*Math.PI/180;
+nodes.forEach(n=>{
+  if(n.g==="root"){ n.x=CX; n.y=CY; return; }
+  const a=rad(groupAngle[n.g]||0);
+  const jitter=(Math.random()-0.5)*90;
+  n.x=CX+Math.cos(a)*RING + jitter;
+  n.y=CY+Math.sin(a)*RING + jitter;
+});
+
+svg.attr("viewBox",`0 0 ${VW} ${VH}`).attr("preserveAspectRatio","xMidYMid meet");
+
+const sim = d3.forceSimulation(nodes)
+  .force("link",d3.forceLink(linkObjs).id(d=>d.id).distance(d=>(nodeById.get(d.source.id||d.source).g==="root")?155:92).strength(.5))
+  .force("charge",d3.forceManyBody().strength(-500).distanceMax(470))
+  .force("center",d3.forceCenter(CX,CY))
+  .force("x",d3.forceX(CX).strength(.045))
+  .force("y",d3.forceY(CY).strength(.045))
+  .force("collide",d3.forceCollide().radius(d=>d.r+22))
+  .alphaDecay(.028).velocityDecay(.4)
+  .on("tick",ticked);
+
+function ticked(){
+  linkSel.attr("x1",d=>d.source.x).attr("y1",d=>d.source.y).attr("x2",d=>d.target.x).attr("y2",d=>d.target.y);
+  nodeSel.attr("transform",d=>`translate(${d.x},${d.y})`);
+}
+
+const zoom=d3.zoom().scaleExtent([.5,2.6]).on("zoom",e=>root.attr("transform",e.transform));
+svg.call(zoom);
+
+nodeSel.style("cursor","grab").call(d3.drag()
+  .on("start",(e,d)=>{if(!e.active)sim.alphaTarget(.25).restart();d.fx=d.x;d.fy=d.y;})
+  .on("drag",(e,d)=>{d.fx=e.x;d.fy=e.y;})
+  .on("end",(e,d)=>{if(!e.active)sim.alphaTarget(0);d.fx=null;d.fy=null;}));
+
+const panel=d3.select("#panel");
+let active=null, hiddenGroups=new Set();
+
+nodeSel.on("click",(e,d)=>{
+  e.stopPropagation();
+  active = active===d.id?null:d.id;
+  if(active){ renderPanel(d); panel.classed("show",true); }
+  else { hidePanel(); }
+  applyHighlight();
+});
+nodeSel.on("mouseenter",function(){d3.select(this).select("circle").attr("opacity",1);})
+       .on("mouseleave",function(){d3.select(this).select("circle").attr("opacity",.92);});
+svg.on("click",()=>{ if(active){ active=null; hidePanel(); applyHighlight(); } });
+function hidePanel(){ panel.classed("show",false); }
+
+function applyHighlight(){
+  const neigh = active?adj.get(active):null;
+  nodeSel.classed("dim",d=>{
+    if(hiddenGroups.has(d.g))return true;
+    if(neigh)return !neigh.has(d.id);
+    return false;
+  });
+  linkSel.classed("dim",d=>{
+    const sg=nodeById.get(d.source.id||d.source).g, tg=nodeById.get(d.target.id||d.target).g;
+    if(hiddenGroups.has(sg)||hiddenGroups.has(tg))return true;
+    if(neigh)return !(neigh.has(d.source.id||d.source)&&neigh.has(d.target.id||d.target));
+    return false;
+  });
+}
+
+function renderPanel(d){
+  const c=groups[d.g].color;
+  let html=`<button class="close" id="panelClose" aria-label="关闭">×</button>`;
+  html+=`<div class="pk">概念详情</div>`;
+  html+=`<h2>${d.id}</h2>`;
+  html+=`<span class="tag" style="background:${c}">${d.info.tag}</span>`;
+  html+=`<p>${d.info.p}</p>`;
+  if(d.info.li){html+="<ul>"+d.info.li.map(x=>`<li>${x}</li>`).join("")+"</ul>";}
+  panel.html(html);
+  panel.select("#panelClose").on("click",(ev)=>{ ev.stopPropagation(); active=null; hidePanel(); applyHighlight(); });
+}
+
+const legend=d3.select("#legend");
+Object.entries(groups).forEach(([k,v])=>{
+  const el=legend.append("div").attr("class","lg").attr("data-g",k);
+  el.append("span").attr("class","dot").style("background",v.color);
+  el.append("span").text(v.label);
+  el.on("click",function(){
+    if(hiddenGroups.has(k)){hiddenGroups.delete(k);d3.select(this).classed("off",false);}
+    else{hiddenGroups.add(k);d3.select(this).classed("off",true);}
+    applyHighlight();
+  });
+});
+
+d3.select("#resetBtn").on("click",()=>{
+  active=null;hiddenGroups.clear();legend.selectAll(".lg").classed("off",false);
+  applyHighlight();
+  hidePanel();
+  svg.transition().duration(400).call(zoom.transform,d3.zoomIdentity);
+  sim.alpha(.6).restart();
+});
+</script>
+</body>
+</html>
