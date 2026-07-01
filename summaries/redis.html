@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Redis 知识图谱</title>
+<script src="https://artifactcdn.diabrowser.engineering/ajax/libs/d3/d3.min.js"></script>
+<style>
+  :root{
+    --bg:#f4eeec;
+    --paper:#fdfaf9;
+    --ink:#2a1a17;
+    --muted:#77655f;
+    --line:#e0d3ce;
+    --c-root:#a41e11;      /* Redis 红 */
+    --c-fast:#c15a2b;
+    --c-ds:#b8892b;
+    --c-mem:#6a7d33;
+    --c-persist:#2f7d6b;
+    --c-cache:#c0392b;
+    --c-cluster:#3a6ea5;
+    --c-tx:#6a4fa3;
+    --accent:#a41e11;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--bg);color:var(--ink);font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1400px;margin:0 auto;padding:32px 28px 80px;}
+  header.masthead{border-bottom:3px double var(--ink);padding-bottom:18px;margin-bottom:24px;}
+  .kicker{font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--accent);margin-bottom:8px;}
+  h1{font-size:clamp(34px,5vw,56px);line-height:1.02;margin:0 0 10px;font-weight:700;letter-spacing:-.01em;}
+  .dek{font-size:17px;color:var(--muted);max-width:820px;line-height:1.5;margin:0;}
+  .layout{display:block;}
+
+  .graph-card{background:var(--paper);border:1px solid var(--line);border-radius:4px;position:relative;overflow:hidden;box-shadow:0 1px 0 #fff inset, 0 8px 26px rgba(50,25,20,.09);}
+  .graph-head{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--line);font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
+  .legend{display:flex;flex-wrap:wrap;gap:10px;}
+  .lg{display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none;opacity:.95;}
+  .lg .dot{width:11px;height:11px;border-radius:50%;display:inline-block;}
+  .lg.off{opacity:.32;text-decoration:line-through;}
+  #graph{width:100%;height:clamp(540px,74vh,820px);display:block;}
+  .controls{display:flex;gap:8px;align-items:center;}
+  .btn{font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:11px;background:var(--ink);color:var(--paper);border:none;border-radius:3px;padding:5px 10px;cursor:pointer;letter-spacing:.06em;}
+  .btn:hover{background:var(--accent);}
+
+  .node circle{cursor:pointer;stroke:#fdfaf9;stroke-width:1.5px;transition:opacity .2s;}
+  .node text{font-family:"Iowan Old Style",Palatino,Georgia,serif;fill:var(--ink);pointer-events:none;paint-order:stroke;stroke:rgba(253,250,249,.85);stroke-width:3px;}
+  .link{stroke:#c4b1aa;stroke-opacity:.5;fill:none;}
+  .node.dim{opacity:.12;}
+  .link.dim{stroke-opacity:.06;}
+
+  aside.panel{position:absolute;top:64px;right:16px;width:340px;max-width:calc(100% - 32px);max-height:calc(100% - 84px);overflow-y:auto;background:rgba(253,250,249,.97);backdrop-filter:blur(6px);border:1px solid var(--line);border-radius:6px;padding:18px 18px 20px;box-shadow:0 10px 34px rgba(50,25,20,.18);opacity:0;transform:translateY(-6px) scale(.98);pointer-events:none;transition:opacity .22s ease, transform .22s ease;z-index:5;}
+  aside.panel.show{opacity:1;transform:none;pointer-events:auto;}
+  .panel .close{position:absolute;top:10px;right:12px;border:none;background:none;font-size:20px;line-height:1;color:var(--muted);cursor:pointer;padding:2px 4px;}
+  .panel .close:hover{color:var(--accent);}
+  .panel .pk{font-family:"SF Mono",ui-monospace,monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);}
+  .panel h2{font-size:22px;margin:6px 22px 4px 0;line-height:1.12;}
+  .panel .tag{display:inline-block;font-family:"SF Mono",monospace;font-size:10px;padding:2px 8px;border-radius:20px;color:#fff;letter-spacing:.05em;margin-bottom:14px;}
+  .panel p{font-size:15px;line-height:1.55;color:#332420;margin:0 0 12px;}
+  .panel ul{margin:0 0 12px;padding-left:18px;}
+  .panel li{font-size:14px;line-height:1.5;margin-bottom:6px;color:#3b2b26;}
+  .panel li b{color:var(--ink);}
+  code{font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:.86em;background:#efe3df;padding:1px 5px;border-radius:3px;}
+
+  .summary{margin-top:44px;border-top:3px double var(--ink);padding-top:30px;}
+  .summary h2.sec{font-size:13px;font-family:"SF Mono",monospace;letter-spacing:.24em;text-transform:uppercase;color:var(--accent);margin:0 0 22px;}
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:20px;}
+  .topic{background:var(--paper);border:1px solid var(--line);border-radius:4px;padding:20px 20px 22px;border-top:4px solid var(--c-root);}
+  .topic h3{margin:0 0 4px;font-size:20px;}
+  .topic .sub{font-family:"SF Mono",monospace;font-size:11px;color:var(--muted);letter-spacing:.06em;margin-bottom:12px;text-transform:uppercase;}
+  .topic ul{margin:0;padding-left:18px;}
+  .topic li{font-size:14px;line-height:1.5;margin-bottom:7px;}
+  .topic li b{color:var(--ink);}
+  table.cmp{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px;}
+  table.cmp th,table.cmp td{border:1px solid var(--line);padding:5px 7px;text-align:left;vertical-align:top;}
+  table.cmp th{background:#efe3df;font-family:"SF Mono",monospace;font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;}
+  .footnote{margin-top:40px;color:var(--muted);font-size:13px;font-style:italic;text-align:center;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="masthead">
+    <div class="kicker">知识笔记 · 结构化总结 + 交互式知识图谱</div>
+    <h1>Redis 全景</h1>
+    <p class="dek">从"为什么快"、数据结构,到过期/淘汰策略、持久化、缓存三大问题、集群与事务,一篇笔记的完整脉络。点击任意节点查看详情,可拖拽节点、滚轮缩放。</p>
+  </header>
+
+  <div class="layout">
+    <div class="graph-card">
+      <div class="graph-head">
+        <div class="legend" id="legend"></div>
+        <div class="controls"><button class="btn" id="resetBtn">重置布局</button></div>
+      </div>
+      <svg id="graph"></svg>
+      <aside class="panel" id="panel"></aside>
+    </div>
+  </div>
+
+  <section class="summary">
+    <h2 class="sec">结构化总结</h2>
+    <div class="cards">
+
+      <div class="topic" style="border-top-color:var(--c-fast)">
+        <h3>Redis 是什么 · 为什么快</h3>
+        <div class="sub">内存 · 单线程 · IO 多路复用</div>
+        <ul>
+          <li>基于内存、单线程驱动、可持久化的数据结构服务器。</li>
+          <li><b>完全基于内存</b>:无磁盘 IO 瓶颈,读写纳秒级。</li>
+          <li><b>单线程执行命令</b>:无上下文切换/锁竞争;瓶颈在网络 IO 而非 CPU。6.0 后多线程优化网络 IO,命令仍单线程。</li>
+          <li><b>IO 多路复用</b>:单线程一次系统调用监控多个 fd,就绪才处理,不阻塞。</li>
+        </ul>
+      </div>
+
+      <div class="topic" style="border-top-color:var(--c-ds)">
+        <h3>数据结构</h3>
+        <div class="sub">7 种核心类型</div>
+        <ul>
+          <li><b>String</b>(SDS):缓存对象、计数器、分布式锁。SDS 二进制安全、O(1) 取长、预分配、防溢出。</li>
+          <li><b>List</b>(双向链表):消息队列、最新列表、时间线。</li>
+          <li><b>Hash</b>:用户属性、购物车;<b>Set</b>(无序不重复):标签、共同好友、抽奖去重。</li>
+          <li><b>Sorted Set</b>(按 score 排序):排行榜、延迟队列;<b>Bitmaps</b>:签到;<b>HyperLogLog</b>:基数统计。</li>
+        </ul>
+      </div>
+
+      <div class="topic" style="border-top-color:var(--c-mem)">
+        <h3>过期与淘汰策略</h3>
+        <div class="sub">Expire + Eviction</div>
+        <ul>
+          <li><b>过期删除</b>:惰性删除(访问时检查)+ 定期删除(定时随机抽查)。</li>
+          <li><b>淘汰策略</b>(内存满时):noeviction 拒写。</li>
+          <li>LRU/LFU/TTL/random × allkeys(所有 key)/volatile(仅设过期的 key)组合。</li>
+          <li>如 <code>allkeys-lru</code>、<code>volatile-lfu</code>、<code>volatile-ttl</code>(最接近过期)。</li>
+        </ul>
+      </div>
+
+      <div class="topic" style="border-top-color:var(--c-persist)">
+        <h3>持久化</h3>
+        <div class="sub">RDB · AOF · 混合</div>
+        <ul>
+          <li><b>RDB</b>:定时快照,二进制紧凑、恢复快;可能丢最后一次快照后的数据。fork 子进程写页缓存再 fsync。</li>
+          <li><b>AOF</b>:顺序追加写命令,重放恢复。刷盘:always(每条,主线程)、everysec(每秒,后台)、no(OS 定)。</li>
+          <li><b>混合持久化</b>:AOF 重写时,文件头用 RDB 全量,之后 AOF 追加。</li>
+        </ul>
+      </div>
+
+      <div class="topic" style="border-top-color:var(--c-cache)">
+        <h3>缓存三大问题</h3>
+        <div class="sub">雪崩 · 穿透 · 击穿</div>
+        <ul>
+          <li><b>雪崩</b>:大量缓存同时失效/宕机 → 打满 DB。解:过期加随机值、多级缓存、限流降级。</li>
+          <li><b>穿透</b>:查缓存与 DB 都不存在的数据。解:缓存空结果、布隆过滤器、参数校验。</li>
+          <li><b>击穿</b>:单个<b>热点数据</b>过期瞬间被并发击中。解:热点永不过期、提前更新、互斥锁。</li>
+        </ul>
+      </div>
+
+      <div class="topic" style="border-top-color:var(--c-cluster)">
+        <h3>集群</h3>
+        <div class="sub">主从 · 哨兵 · 集群</div>
+        <ul>
+          <li><b>主从复制</b>:读写分离,无分片/无故障转移,适合少量读扩展。</li>
+          <li><b>哨兵模式</b>:监控+故障通知+自动故障转移(从从节点选主),适合中小规模高可用。</li>
+          <li><b>集群模式</b>:水平扩展、自动分片(默认 <b>16384 个 Slot</b>)、无中心,适合大规模分布式。</li>
+        </ul>
+      </div>
+
+      <div class="topic" style="border-top-color:var(--c-tx)">
+        <h3>事务</h3>
+        <div class="sub">MULTI / EXEC · 不回滚</div>
+        <ul>
+          <li>一次性、顺序性、排他性执行多命令。</li>
+          <li><code>MULTI</code> 开启、<code>EXEC</code> 执行、<code>DISCARD</code> 取消、<code>WATCH</code> 乐观锁(键被改则中断)。</li>
+          <li>本质=命令批处理 + 执行期隔离,<b>但不回滚</b>;基本被 Lua 脚本替代。</li>
+        </ul>
+      </div>
+
+      <div class="topic" style="border-top-color:var(--c-root)">
+        <h3>常见使用场景</h3>
+        <div class="sub">微服务中的 Redis</div>
+        <ul>
+          <li><b>缓存</b>:加速查询、扛读流量;<b>分布式锁</b>:Redisson 解超卖/重复执行。</li>
+          <li><b>排行榜/计数器</b>:Sorted Set 实时排名、String 原子计数。</li>
+          <li><b>轻量消息队列</b>:List 简单队列、Stream 可靠消费;<b>特征存储</b>:AI 向量/画像标签。</li>
+        </ul>
+      </div>
+
+    </div>
+    <p class="footnote">源自笔记《Redis · kit-docs》。图谱与卡片为结构化重组,便于复习与检索。</p>
+  </section>
+</div>
+
+<script>
+const groups = {
+  root:    {label:"Redis 核心",  color:"#a41e11"},
+  fast:    {label:"为什么快",    color:"#c15a2b"},
+  ds:      {label:"数据结构",    color:"#b8892b"},
+  mem:     {label:"过期/淘汰",   color:"#6a7d33"},
+  persist: {label:"持久化",      color:"#2f7d6b"},
+  cache:   {label:"缓存问题",    color:"#c0392b"},
+  cluster: {label:"集群",        color:"#3a6ea5"},
+  tx:      {label:"事务",        color:"#6a4fa3"}
+};
+
+const nodes = [
+  {id:"Redis", g:"root", r:26, info:{tag:"核心",p:"基于内存、单线程驱动、可持久化的数据结构服务器。",li:["<b>常见场景</b>:缓存、分布式锁(Redisson)、排行榜/计数器、轻量消息队列、特征存储","单线程执行命令,IO 多路复用支撑高并发"]}},
+
+  {id:"为什么快", g:"fast", r:19, info:{tag:"性能",p:"三大原因:内存、单线程、IO 多路复用。",li:["<b>完全基于内存</b>:无磁盘 IO,读写纳秒级","<b>单线程执行命令</b>:无上下文切换与锁竞争","<b>IO 多路复用</b>:单线程监控多连接"]}},
+  {id:"单线程模型", g:"fast", r:14, info:{tag:"性能 · 线程",p:"命令始终单线程串行执行。",li:["6.0 前:所有命令主线程串行,瓶颈在网络 IO 而非 CPU","6.0 后:多线程优化读写网络 IO,命令仍单线程","好处:无上下文切换、无锁竞争"]}},
+  {id:"IO 多路复用", g:"fast", r:14, info:{tag:"性能 · IO",p:"同步非阻塞 IO 模型。",li:["单线程一次系统调用同时监控多个文件描述符","内核返回就绪列表,应用逐个处理,不阻塞在未就绪连接","类比:一个柜员同时盯多个客户,谁准备好就处理谁"]}},
+
+  {id:"数据结构", g:"ds", r:19, info:{tag:"数据结构",p:"7 种核心数据类型。",li:["String / List / Hash / Set","Sorted Set / Bitmaps / HyperLogLog"]}},
+  {id:"String", g:"ds", r:13, info:{tag:"数据结构",p:"底层 SDS(Simple Dynamic String)。",li:["<b>SDS 优点</b>:二进制安全、O(1) 取长度、预分配减少重分配、惰性释放、防缓冲区溢出","<b>场景</b>:缓存对象、计数器、分布式锁"]}},
+  {id:"List", g:"ds", r:12, info:{tag:"数据结构",p:"双向链表,有序、可重复,支持左右压入弹出。",li:["<b>场景</b>:消息队列、最新列表、时间线"]}},
+  {id:"Hash", g:"ds", r:12, info:{tag:"数据结构",p:"键值对集合。",li:["<b>场景</b>:存储用户属性、购物车"]}},
+  {id:"Set", g:"ds", r:12, info:{tag:"数据结构",p:"无序、不可重复的集合。",li:["<b>场景</b>:标签系统、共同好友、抽奖去重"]}},
+  {id:"Sorted Set", g:"ds", r:13, info:{tag:"数据结构",p:"有序集合,每个成员关联 score 排序,成员唯一。",li:["<b>场景</b>:排行榜、延迟队列、带权重实时队列"]}},
+  {id:"Bitmaps / HLL", g:"ds", r:12, info:{tag:"数据结构",p:"位数组与概率算法。",li:["<b>Bitmaps</b>:操作位数组,用于签到、用户画像","<b>HyperLogLog</b>:概率算法,用于基数统计"]}},
+
+  {id:"过期策略", g:"mem", r:15, info:{tag:"内存 · 过期",p:"key 到期后如何删除。",li:["<b>惰性删除</b>:数据被访问时检查是否清理","<b>定期删除</b>:定时执行,随机抽取部分 key 检查"]}},
+  {id:"淘汰策略", g:"mem", r:15, info:{tag:"内存 · 淘汰",p:"内存满时释放内存的 8 种策略。",li:["<b>noeviction</b>:拒绝写入","<b>LRU/LFU</b> × allkeys/volatile:最近最少/最不经常使用","<b>volatile-ttl</b>:淘汰最接近过期的;<b>random</b>:随机淘汰","volatile 只作用于设了过期时间的 key"]}},
+
+  {id:"持久化", g:"persist", r:18, info:{tag:"持久化",p:"三种方式:RDB、AOF、混合。",li:["RDB 快照 + AOF 命令日志 + 混合持久化"]}},
+  {id:"RDB", g:"persist", r:14, info:{tag:"持久化 · RDB",p:"Redis Database Backup,定时快照。",li:["二进制紧凑、恢复快","可能丢失最后一次快照之后的数据","刷盘:fork 子进程写内存快照到页缓存,再 fsync() 落盘"]}},
+  {id:"AOF", g:"persist", r:14, info:{tag:"持久化 · AOF",p:"Append Only File,顺序追加写命令,重放恢复。",li:["<b>always</b>:每条命令立即刷盘(主线程)","<b>everysec</b>:每秒刷一次(后台线程)","<b>no</b>:不主动刷盘,由 OS 决定"]}},
+  {id:"混合持久化", g:"persist", r:13, info:{tag:"持久化 · 混合",p:"只在 AOF 重写时发生。",li:["子进程将当前内存数据以 RDB 形式写入 AOF 文件开头","后续采用 AOF 追加写","= 全量 RDB(快加载)+ 增量 AOF(快照后的写命令)"]}},
+
+  {id:"缓存三大问题", g:"cache", r:18, info:{tag:"缓存问题",p:"Redis 与数据库配合时的三类经典故障。",li:["雪崩:大量同时失效","穿透:查不存在的数据","击穿:单个热点过期瞬间被击中"]}},
+  {id:"缓存雪崩", g:"cache", r:14, info:{tag:"缓存 · 雪崩",p:"大量缓存同时失效或缓存宕机,请求直打 DB。",li:["原因:大量 key 相同过期时间、缓存服务器宕机","解:过期时间加随机值、多级缓存(本地+分布式)、限流降级"]}},
+  {id:"缓存穿透", g:"cache", r:14, info:{tag:"缓存 · 穿透",p:"查询缓存与 DB 都不存在的数据,每次都打 DB。",li:["解:缓存空结果(短过期)、<b>布隆过滤器</b>快速判断是否可能存在、参数校验过滤无效请求"]}},
+  {id:"缓存击穿", g:"cache", r:14, info:{tag:"缓存 · 击穿",p:"某个热点数据过期瞬间被大量请求并发击中。",li:["解:热点数据永不过期(后台异步更新)、提前更新缓存、<b>互斥锁</b>只放一个请求加载"]}},
+
+  {id:"集群", g:"cluster", r:18, info:{tag:"集群",p:"三种部署模式,能力递增。",li:["主从复制 → 哨兵模式 → 集群模式","从读写分离,到高可用,再到水平扩展"]}},
+  {id:"主从复制", g:"cluster", r:13, info:{tag:"集群 · 主从",p:"基础复制模式。",li:["特点:读写分离","无数据分片、无故障转移","适合:少量读扩展"]}},
+  {id:"哨兵模式", g:"cluster", r:13, info:{tag:"集群 · 哨兵",p:"在主从之上加入监控与自动故障转移。",li:["监控节点状态、故障通知、自动故障转移","主故障时哨兵从 从节点 选举新主","适合:中小规模、高可用"]}},
+  {id:"集群模式", g:"cluster", r:14, info:{tag:"集群 · Cluster",p:"水平扩展、自动分片、无中心架构。",li:["数据分片:默认 <b>16384 个 Slot</b>,每主负责一部分","主故障时自动从 从节点 选新主","适合:大规模分布式应用"]}},
+
+  {id:"事务", g:"tx", r:16, info:{tag:"事务",p:"一次性、顺序性、排他性执行多命令。",li:["<code>MULTI</code> 开启 / <code>EXEC</code> 执行 / <code>DISCARD</code> 取消","<code>WATCH</code>:乐观锁,监视的键被改则事务中断","本质=批处理+执行期隔离,<b>不回滚</b>;基本被 Lua 脚本替代"]}}
+];
+
+const links = [
+  ["Redis","为什么快"],["Redis","数据结构"],["Redis","过期策略"],["Redis","淘汰策略"],
+  ["Redis","持久化"],["Redis","缓存三大问题"],["Redis","集群"],["Redis","事务"],
+
+  ["为什么快","单线程模型"],["为什么快","IO 多路复用"],
+
+  ["数据结构","String"],["数据结构","List"],["数据结构","Hash"],["数据结构","Set"],
+  ["数据结构","Sorted Set"],["数据结构","Bitmaps / HLL"],
+
+  ["过期策略","淘汰策略"],
+
+  ["持久化","RDB"],["持久化","AOF"],["持久化","混合持久化"],["RDB","混合持久化"],["AOF","混合持久化"],
+
+  ["缓存三大问题","缓存雪崩"],["缓存三大问题","缓存穿透"],["缓存三大问题","缓存击穿"],
+  ["缓存击穿","过期策略"],["缓存雪崩","集群"],
+
+  ["集群","主从复制"],["集群","哨兵模式"],["集群","集群模式"],["主从复制","哨兵模式"],["哨兵模式","集群模式"],
+
+  ["事务","String"],["缓存击穿","事务"]
+];
+
+const nodeById = new Map(nodes.map(n=>[n.id,n]));
+const linkObjs = links.map(([s,t])=>({source:s,target:t}));
+const adj = new Map(nodes.map(n=>[n.id,new Set([n.id])]));
+linkObjs.forEach(l=>{adj.get(l.source).add(l.target);adj.get(l.target).add(l.source);});
+
+const svg = d3.select("#graph");
+const root = svg.append("g");
+const linkSel = root.append("g").selectAll("line").data(linkObjs).join("line").attr("class","link").attr("stroke-width",d=>nodeById.get(d.source).g==="root"?1.4:1);
+const nodeSel = root.append("g").selectAll("g").data(nodes).join("g").attr("class","node");
+
+nodeSel.append("circle").attr("r",d=>d.r).attr("fill",d=>groups[d.g].color).attr("opacity",.92);
+nodeSel.append("text").text(d=>d.id).attr("text-anchor","middle").attr("dy",d=>d.r+15)
+  .attr("font-size",d=>d.g==="root"?16:(d.r>=18?14:12.5)).attr("font-weight",d=>d.r>=18?700:500);
+
+const VW=1240, VH=800, CX=VW/2, CY=VH/2;
+const groupAngle={fast:-165,ds:-115,mem:-55,persist:-5,cache:50,cluster:110,tx:165};
+const RING=250;
+const rad=d=>d*Math.PI/180;
+nodes.forEach(n=>{
+  if(n.g==="root"){ n.x=CX; n.y=CY; return; }
+  const a=rad(groupAngle[n.g]||0);
+  const jitter=(Math.random()-0.5)*90;
+  n.x=CX+Math.cos(a)*RING + jitter;
+  n.y=CY+Math.sin(a)*RING + jitter;
+});
+
+svg.attr("viewBox",`0 0 ${VW} ${VH}`).attr("preserveAspectRatio","xMidYMid meet");
+
+const sim = d3.forceSimulation(nodes)
+  .force("link",d3.forceLink(linkObjs).id(d=>d.id).distance(d=>(nodeById.get(d.source.id||d.source).g==="root")?155:90).strength(.5))
+  .force("charge",d3.forceManyBody().strength(-500).distanceMax(470))
+  .force("center",d3.forceCenter(CX,CY))
+  .force("x",d3.forceX(CX).strength(.045))
+  .force("y",d3.forceY(CY).strength(.045))
+  .force("collide",d3.forceCollide().radius(d=>d.r+22))
+  .alphaDecay(.028).velocityDecay(.4)
+  .on("tick",ticked);
+
+function ticked(){
+  linkSel.attr("x1",d=>d.source.x).attr("y1",d=>d.source.y).attr("x2",d=>d.target.x).attr("y2",d=>d.target.y);
+  nodeSel.attr("transform",d=>`translate(${d.x},${d.y})`);
+}
+
+const zoom=d3.zoom().scaleExtent([.5,2.6]).on("zoom",e=>root.attr("transform",e.transform));
+svg.call(zoom);
+
+nodeSel.style("cursor","grab").call(d3.drag()
+  .on("start",(e,d)=>{if(!e.active)sim.alphaTarget(.25).restart();d.fx=d.x;d.fy=d.y;})
+  .on("drag",(e,d)=>{d.fx=e.x;d.fy=e.y;})
+  .on("end",(e,d)=>{if(!e.active)sim.alphaTarget(0);d.fx=null;d.fy=null;}));
+
+const panel=d3.select("#panel");
+let active=null, hiddenGroups=new Set();
+
+nodeSel.on("click",(e,d)=>{
+  e.stopPropagation();
+  active = active===d.id?null:d.id;
+  if(active){ renderPanel(d); panel.classed("show",true); }
+  else { hidePanel(); }
+  applyHighlight();
+});
+nodeSel.on("mouseenter",function(){d3.select(this).select("circle").attr("opacity",1);})
+       .on("mouseleave",function(){d3.select(this).select("circle").attr("opacity",.92);});
+svg.on("click",()=>{ if(active){ active=null; hidePanel(); applyHighlight(); } });
+function hidePanel(){ panel.classed("show",false); }
+
+function applyHighlight(){
+  const neigh = active?adj.get(active):null;
+  nodeSel.classed("dim",d=>{
+    if(hiddenGroups.has(d.g))return true;
+    if(neigh)return !neigh.has(d.id);
+    return false;
+  });
+  linkSel.classed("dim",d=>{
+    const sg=nodeById.get(d.source.id||d.source).g, tg=nodeById.get(d.target.id||d.target).g;
+    if(hiddenGroups.has(sg)||hiddenGroups.has(tg))return true;
+    if(neigh)return !(neigh.has(d.source.id||d.source)&&neigh.has(d.target.id||d.target));
+    return false;
+  });
+}
+
+function renderPanel(d){
+  const c=groups[d.g].color;
+  let html=`<button class="close" id="panelClose" aria-label="关闭">×</button>`;
+  html+=`<div class="pk">概念详情</div>`;
+  html+=`<h2>${d.id}</h2>`;
+  html+=`<span class="tag" style="background:${c}">${d.info.tag}</span>`;
+  html+=`<p>${d.info.p}</p>`;
+  if(d.info.li){html+="<ul>"+d.info.li.map(x=>`<li>${x}</li>`).join("")+"</ul>";}
+  panel.html(html);
+  panel.select("#panelClose").on("click",(ev)=>{ ev.stopPropagation(); active=null; hidePanel(); applyHighlight(); });
+}
+
+const legend=d3.select("#legend");
+Object.entries(groups).forEach(([k,v])=>{
+  const el=legend.append("div").attr("class","lg").attr("data-g",k);
+  el.append("span").attr("class","dot").style("background",v.color);
+  el.append("span").text(v.label);
+  el.on("click",function(){
+    if(hiddenGroups.has(k)){hiddenGroups.delete(k);d3.select(this).classed("off",false);}
+    else{hiddenGroups.add(k);d3.select(this).classed("off",true);}
+    applyHighlight();
+  });
+});
+
+d3.select("#resetBtn").on("click",()=>{
+  active=null;hiddenGroups.clear();legend.selectAll(".lg").classed("off",false);
+  applyHighlight();
+  hidePanel();
+  svg.transition().duration(400).call(zoom.transform,d3.zoomIdentity);
+  sim.alpha(.6).restart();
+});
+</script>
+</body>
+</html>
