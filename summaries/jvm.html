@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JVM 知识图谱</title>
+<script src="https://artifactcdn.diabrowser.engineering/ajax/libs/d3/d3.min.js"></script>
+<style>
+  :root{
+    --bg:#f4efe6;--paper:#fbf8f1;--ink:#1c1a17;--muted:#6b6358;--line:#d9cfbe;
+    --accent:#b03a2e;
+    --loader:#c0392b;--runtime:#1f6f8b;--engine:#8e6cc0;--gc:#2f7d5b;--leaf:#3a3631;--root:#1c1a17;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
+    font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Songti SC",serif;}
+  .wrap{max-width:1240px;margin:0 auto;padding:38px 30px 80px;}
+  header.masthead{border-bottom:3px double var(--ink);padding-bottom:18px;margin-bottom:8px;}
+  .kicker{font-family:"Helvetica Neue",Arial,sans-serif;text-transform:uppercase;letter-spacing:.32em;
+    font-size:11px;color:var(--accent);font-weight:700;}
+  h1{font-size:clamp(34px,5vw,58px);line-height:1.02;margin:8px 0 6px;font-weight:800;letter-spacing:-.01em;}
+  .dek{color:var(--muted);font-size:16px;max-width:780px;}
+
+  .graph-card{background:var(--paper);border:1px solid var(--line);border-radius:12px;
+    box-shadow:0 14px 40px rgba(40,30,15,.08);overflow:hidden;margin-top:26px;}
+  .graph-head{display:flex;flex-wrap:wrap;align-items:center;gap:14px 20px;padding:16px 20px;border-bottom:1px solid var(--line);}
+  .graph-head h2{font-size:20px;margin:0;font-weight:800;}
+  .legend{display:flex;flex-wrap:wrap;gap:12px;font-family:"Helvetica Neue",Arial,sans-serif;font-size:12px;color:var(--muted);}
+  .legend span{display:inline-flex;align-items:center;gap:6px;}
+  .dot{width:11px;height:11px;border-radius:50%;display:inline-block;}
+  .hint{margin-left:auto;font-family:"Helvetica Neue",Arial,sans-serif;font-size:11px;color:var(--muted);}
+  .graph-wrap{position:relative;width:100%;height:clamp(480px,72vh,760px);overflow:hidden;}
+  svg{width:100%;height:100%;display:block;cursor:grab;}svg:active{cursor:grabbing;}
+  .link{stroke:#bdb1a0;stroke-opacity:.7;}
+  .node circle{stroke:var(--paper);stroke-width:2px;cursor:pointer;}
+  .node:hover circle{stroke:var(--ink);}
+  .node text{font-family:"Helvetica Neue",Arial,sans-serif;pointer-events:none;fill:var(--ink);font-weight:600;
+    paint-order:stroke;stroke:var(--paper);stroke-width:3px;}
+  .detail{position:absolute;top:14px;right:14px;width:310px;max-width:calc(100% - 28px);
+    background:rgba(251,248,241,.97);border:1px solid var(--line);border-radius:10px;padding:16px 18px;
+    box-shadow:0 10px 30px rgba(40,30,15,.14);font-family:"Helvetica Neue",Arial,sans-serif;display:none;}
+  .detail.show{display:block;}
+  .detail h3{margin:0 0 4px;font-size:17px;}
+  .detail .tag{display:inline-block;font-size:10px;text-transform:uppercase;letter-spacing:.12em;padding:2px 8px;
+    border-radius:20px;color:#fff;margin-bottom:10px;font-weight:700;}
+  .detail dl{margin:0;font-size:13px;line-height:1.5;}
+  .detail dt{color:var(--muted);font-weight:700;margin-top:8px;font-size:11px;text-transform:uppercase;letter-spacing:.08em;}
+  .detail dd{margin:2px 0 0;}
+  .detail .close{position:absolute;top:10px;right:12px;cursor:pointer;color:var(--muted);font-size:18px;border:none;background:none;}
+
+  h2.sec{font-size:13px;font-family:"Helvetica Neue",Arial,sans-serif;text-transform:uppercase;letter-spacing:.22em;
+    color:var(--accent);border-bottom:1px solid var(--line);padding-bottom:8px;margin:40px 0 18px;}
+  .lead{font-size:16px;max-width:820px;margin:0 0 16px;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:16px;}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:16px 18px;box-shadow:0 6px 18px rgba(40,30,15,.05);}
+  .card h3{margin:0 0 4px;font-size:18px;display:flex;align-items:center;gap:8px;}
+  .card h3 .pip{width:10px;height:10px;border-radius:2px;display:inline-block;}
+  .card .sub{font-family:"Helvetica Neue",Arial,sans-serif;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;}
+  .card .share{font-family:"Helvetica Neue",Arial,sans-serif;font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;}
+  .share.s{background:#dceee4;color:#256e4d;}.share.p{background:#f6e2db;color:#a23b29;}
+  .card ul{margin:8px 0 0;padding-left:18px;font-size:14px;line-height:1.55;}
+  .card ul li{margin-bottom:4px;}
+  code{font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:12px;background:#efe7d8;padding:1px 5px;border-radius:4px;}
+  .ts{font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:11px;background:#efe7d8;padding:1px 6px;border-radius:4px;}
+
+  table{width:100%;border-collapse:collapse;margin:8px 0 4px;font-size:13px;font-family:"Helvetica Neue",Arial,sans-serif;}
+  th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top;}
+  th{background:#efe7d8;font-weight:700;}
+  .stw-y{color:#b03a2e;font-weight:700;}.stw-n{color:#2f7d5b;font-weight:700;}
+
+  details.faq{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:0 16px;margin-bottom:10px;}
+  details.faq summary{cursor:pointer;padding:13px 0;font-weight:700;font-size:15px;list-style:none;display:flex;justify-content:space-between;align-items:center;}
+  details.faq summary::-webkit-details-marker{display:none;}
+  details.faq summary::after{content:"+";color:var(--accent);font-size:20px;font-family:sans-serif;}
+  details.faq[open] summary::after{content:"\2013";}
+  details.faq .body{padding:0 0 14px;font-size:14px;line-height:1.6;font-family:"Helvetica Neue",Arial,sans-serif;}
+  footer{margin-top:50px;border-top:1px solid var(--line);padding-top:14px;font-family:"Helvetica Neue",Arial,sans-serif;font-size:12px;color:var(--muted);}
+  @media print{body{background:#fff;}.graph-wrap{height:540px;}.hint,.detail{display:none!important;}details.faq{break-inside:avoid;}details.faq .body{display:block!important;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="masthead">
+    <div class="kicker">知识笔记 · Java 虚拟机</div>
+    <h1>JVM 全景</h1>
+    <p class="dek">Java 虚拟机解决"一次编写,到处运行"的核心问题。本页梳理三大体系:<em>组成结构</em>(类加载器、运行时数据区、执行引擎)、<em>垃圾回收</em>(寻找/算法/收集器)与<em>执行引擎</em>的解释 + JIT 混合模式,并附知识图谱与高频问答。</p>
+  </header>
+
+  <div class="graph-card">
+    <div class="graph-head">
+      <h2>知识图谱</h2>
+      <div class="legend">
+        <span><i class="dot" style="background:var(--loader)"></i>类加载</span>
+        <span><i class="dot" style="background:var(--runtime)"></i>运行时数据区</span>
+        <span><i class="dot" style="background:var(--engine)"></i>执行引擎</span>
+        <span><i class="dot" style="background:var(--gc)"></i>垃圾回收</span>
+        <span><i class="dot" style="background:var(--leaf)"></i>子项</span>
+      </div>
+      <span class="hint">点击节点查看详情 · 可拖拽 · 滚轮缩放</span>
+    </div>
+    <div class="graph-wrap" id="gw">
+      <svg id="svg"></svg>
+      <div class="detail" id="detail">
+        <button class="close" id="closeBtn">&times;</button>
+        <span class="tag" id="dTag"></span>
+        <h3 id="dTitle"></h3>
+        <dl id="dBody"></dl>
+      </div>
+    </div>
+  </div>
+
+  <!-- 组成结构 -->
+  <h2 class="sec">JVM 组成结构</h2>
+  <p class="lead">类加载器把字节码加载进内存;运行时数据区管理内存;执行引擎把字节码翻译成机器指令;JNI 与本地方法库支撑对 C/C++ 的调用。</p>
+  <div class="grid">
+    <div class="card">
+      <h3><span class="pip" style="background:var(--loader)"></span>类加载器</h3>
+      <div class="sub">加载 → 验证 → 准备 → 解析 → 初始化</div>
+      <ul>
+        <li>三层:Bootstrap → Extension → Application</li>
+        <li><strong>双亲委派</strong>:逐级向上委派,父加载不了子才加载</li>
+        <li>目的:安全(核心类不被篡改)、唯一(避免重复加载)</li>
+        <li>打破方式:自定义加载器 / 线程上下文加载器 <code>getContextClassLoader()</code></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3><span class="pip" style="background:var(--runtime)"></span>运行时数据区</h3>
+      <div class="sub">共享区 + 线程私有区</div>
+      <ul>
+        <li><strong>共享</strong> <span class="share s">线程共享</span>:堆、方法区</li>
+        <li><strong>私有</strong> <span class="share p">线程私有</span>:虚拟机栈、本地方法栈、程序计数器</li>
+        <li>规定数据放哪、谁共享、何时创建销毁</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3><span class="pip" style="background:var(--engine)"></span>执行引擎</h3>
+      <div class="sub">解释器 + JIT + 垃圾回收器</div>
+      <ul>
+        <li>把字节码翻译成机器指令并运行</li>
+        <li>混合模式:解释器预热/兜底,JIT 加速热点</li>
+        <li>分层编译:C1 快速预热 → C2 激进优化</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 运行时数据区 -->
+  <h2 class="sec">运行时数据区 · 五块内存</h2>
+  <div class="grid">
+    <div class="card">
+      <h3><span class="pip" style="background:var(--runtime)"></span>堆 <span class="share s">共享</span></h3>
+      <div class="sub">最大内存 · 对象实例</div>
+      <ul>
+        <li>分代:新生代(Eden:S0:S1 = <span class="ts">8:1:1</span>)+ 老年代</li>
+        <li>对象熬过 Minor GC,GC 年龄 +1,达 <strong>15</strong> 晋升老年代</li>
+        <li><strong>TLAB</strong>:线程本地分配缓冲,Eden 内每线程独享空间</li>
+        <li>新生代用标记-复制;老年代用标记-整理/清除</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3><span class="pip" style="background:var(--runtime)"></span>方法区 <span class="share s">共享</span></h3>
+      <div class="sub">类元数据 · 常量池 · 静态变量</div>
+      <ul>
+        <li>存类元数据、运行时常量池、静态变量、JIT 代码缓存</li>
+        <li>JDK1.7 永久代(易 OOM)→ JDK1.8 <strong>元空间</strong>(本地内存)</li>
+        <li>1.7 起字符串常量池、静态变量移到堆中</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3><span class="pip" style="background:var(--runtime)"></span>虚拟机栈 <span class="share p">私有</span></h3>
+      <div class="sub">栈帧 · 方法调用</div>
+      <ul>
+        <li>每方法一栈帧:局部变量表、操作数栈、动态链接、返回地址</li>
+        <li>递归过深 → <code>StackOverflowError</code></li>
+        <li>无法申请内存 → <code>OutOfMemoryError</code></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3><span class="pip" style="background:var(--runtime)"></span>程序计数器 <span class="share p">私有</span></h3>
+      <div class="sub">字节码行号指示器</div>
+      <ul>
+        <li>记录当前线程执行的字节码地址(Native 方法时为空)</li>
+        <li>作用:流程控制、线程恢复、异常处理</li>
+        <li>唯一不会 OOM 的区域</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3><span class="pip" style="background:var(--runtime)"></span>本地方法栈 <span class="share p">私有</span></h3>
+      <div class="sub">Native 方法服务</div>
+      <ul>
+        <li>为 Native 方法提供栈环境</li>
+        <li>通过 JNI 调用 C/C++ 实现的函数</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 执行引擎 -->
+  <h2 class="sec">执行引擎 · 解释 + 编译混合</h2>
+  <div class="grid">
+    <div class="card">
+      <h3><span class="pip" style="background:var(--engine)"></span>解释器 vs JIT</h3>
+      <div class="sub">同声传译 vs 文字稿</div>
+      <ul>
+        <li>解释器:逐条翻译执行,负责预热与兜底</li>
+        <li>JIT:热点代码一次性编译为机器码,后续直接运行</li>
+        <li>这正是"Java 编译与解释共存"的原因</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3><span class="pip" style="background:var(--engine)"></span>热点探测</h3>
+      <div class="sub">HotSpot 计数器</div>
+      <ul>
+        <li>方法调用计数器 + 回边计数器(循环)</li>
+        <li>热点循环触发 <strong>OSR</strong>(栈上替换)</li>
+        <li>计数器半衰减"降温",只留高频热点</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3><span class="pip" style="background:var(--engine)"></span>分层编译</h3>
+      <div class="sub">C1 → C2</div>
+      <ul>
+        <li>C1:编译快、质量中等,适合短任务</li>
+        <li>C2:激进优化(逃逸分析、方法内联),适合长跑服务</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- GC -->
+  <h2 class="sec">垃圾回收 · 寻找 / 算法 / 收集器</h2>
+  <p class="lead">核心矛盾是 <strong>STW</strong>(Stop-The-World):不能在变化的对象图上找垃圾,GC 进化史就是让 STW 更短更可控。</p>
+  <div class="grid">
+    <div class="card">
+      <h3><span class="pip" style="background:var(--gc)"></span>寻找垃圾</h3>
+      <div class="sub">可达性分析(Java 采用)</div>
+      <ul>
+        <li>引用计数法:循环引用无法回收,Java 不用</li>
+        <li>可达性分析:从 GC Roots 沿引用链搜索,不可达即可回收</li>
+        <li>GC Roots:栈局部变量、静态变量、常量、JNI 引用、同步锁对象</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3><span class="pip" style="background:var(--gc)"></span>四种引用</h3>
+      <div class="sub">引用强度等级</div>
+      <ul>
+        <li><strong>强</strong>:永不回收(普通引用)</li>
+        <li><strong>软</strong> SoftReference:内存不足时回收(缓存)</li>
+        <li><strong>弱</strong> WeakReference:下次 GC 必回收(ThreadLocal)</li>
+        <li><strong>虚</strong> PhantomReference:仅回收通知(堆外内存)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3><span class="pip" style="background:var(--gc)"></span>回收算法</h3>
+      <div class="sub">三种基本算法</div>
+      <ul>
+        <li>标记-清除:有内存碎片</li>
+        <li>标记-复制:无碎片但浪费空间(新生代)</li>
+        <li>标记-整理:存活对象向一端移动(老年代)</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2 class="sec">常见垃圾回收器</h2>
+  <table>
+    <tr><th>收集器</th><th>区域</th><th>算法</th><th>线程</th><th>核心目标</th></tr>
+    <tr><td>Serial</td><td>新生代</td><td>标记-复制</td><td>单线程</td><td>简单高效,Client 首选</td></tr>
+    <tr><td>ParNew</td><td>新生代</td><td>标记-复制</td><td>多线程</td><td>Serial 多线程版,配 CMS</td></tr>
+    <tr><td>Parallel Scavenge</td><td>新生代</td><td>标记-复制</td><td>多线程</td><td>吞吐量优先</td></tr>
+    <tr><td>Serial Old</td><td>老年代</td><td>标记-整理</td><td>单线程</td><td>配 Serial,CMS 后备</td></tr>
+    <tr><td>Parallel Old</td><td>老年代</td><td>标记-整理</td><td>多线程</td><td>配 Parallel Scavenge</td></tr>
+    <tr><td><strong>CMS</strong></td><td>老年代</td><td>标记-清除</td><td>多线程</td><td>最短停顿(JDK14 移除)</td></tr>
+    <tr><td><strong>G1</strong></td><td>全堆</td><td>复制+整理</td><td>多线程</td><td>可预测停顿(JDK9 默认)</td></tr>
+  </table>
+
+  <div class="grid" style="margin-top:18px;">
+    <div class="card">
+      <h3><span class="pip" style="background:var(--gc)"></span>CMS</h3>
+      <div class="sub">标记-清除 · 三色标记</div>
+      <ul>
+        <li>五阶段:初始标记<span class="stw-y">STW</span> → 并发标记 → 并发预清理 → 重新标记<span class="stw-y">STW</span> → 并发清除</li>
+        <li>三色:白(可回收)/灰(待扫子引用)/黑(扫描完毕)</li>
+        <li><strong>写屏障 + 卡表</strong>记录并发期引用变化(脏页 = 位图标 1)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3><span class="pip" style="background:var(--gc)"></span>G1</h3>
+      <div class="sub">Garbage-First · Region 化</div>
+      <ul>
+        <li>堆分 ~2048 个 Region(1-32MB),角色:Eden/Survivor/Old/Humongous</li>
+        <li><strong>SATB</strong> 快照 + 写前屏障;<strong>RSet</strong> 记录跨 Region 引用</li>
+        <li>Mixed GC:老年代占用达 45% 触发并发标记周期</li>
+        <li><code>-XX:MaxGCPauseMillis</code> 设定目标停顿</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- FAQ -->
+  <h2 class="sec">高频问答</h2>
+  <details class="faq"><summary>为什么说 Java 是解释和编译并存?</summary>
+    <div class="body">Java 同时用解释执行与 JIT 编译,是性能平衡策略。解释器逐行翻译字节码并立即执行、不保存结果(同声传译);编译器对热点代码一次性完整翻译并保存复用(文字稿)。两者结合兼顾启动速度与执行效率。</div></details>
+  <details class="faq"><summary>Java 如何识别热点代码?</summary>
+    <div class="body">HotSpot 基于计数器做热点探测:方法调用计数器统计方法被调次数,回边计数器统计循环体执行次数;热点循环触发 OSR(栈上替换)把解释执行的循环换成机器码。计数器会随时间半衰减降温,只保留高频热点。</div></details>
+  <details class="faq"><summary>CMS 与 G1 的关键区别?</summary>
+    <div class="body">CMS 只管老年代、用标记-清除(有碎片)、追求最短停顿,JDK14 已移除;G1 管整个堆、Region 化、复制+整理(无碎片)、可设定目标停顿时间,JDK9 起为默认。CMS 用写屏障+卡表修正漏标,G1 用 SATB 快照+RSet 缩小扫描范围。</div></details>
+  <details class="faq"><summary>为什么程序计数器不会 OOM?</summary>
+    <div class="body">程序计数器只存一个字节码行号(很小的固定空间),且生命周期随线程,不随对象分配增长,因此是 JVM 规范中唯一不会抛出 OutOfMemoryError 的区域。</div></details>
+
+  <footer>源文档:JVM · kit-docs。本页为结构化知识梳理与交互式知识图谱,便于复习与检索。</footer>
+</div>
+
+<script>
+const data={
+  nodes:[
+    {id:"JVM",label:"JVM",group:"root",lvl:0,tag:"Java 虚拟机",detail:[["核心问题","一次编写,到处运行"],["原理","在 OS 之上建抽象计算机,字节码跨平台执行"]]},
+    {id:"ClassLoader",label:"类加载器",group:"loader",lvl:1,tag:"组成结构",detail:[["职责","加载字节码到内存,生成 Class 对象"],["模型","双亲委派"]]},
+    {id:"Runtime",label:"运行时数据区",group:"runtime",lvl:1,tag:"组成结构",detail:[["职责","JVM 内存管理区域"],["划分","共享区 + 线程私有区"]]},
+    {id:"Engine",label:"执行引擎",group:"engine",lvl:1,tag:"组成结构",detail:[["职责","字节码 → 机器指令"],["模式","解释器 + JIT 混合"]]},
+    {id:"GC",label:"垃圾回收",group:"gc",lvl:1,tag:"内存机制",detail:[["定义","自动识别并释放无用对象"],["核心矛盾","STW(暂停用户线程)"]]},
+
+    {id:"Parents",label:"双亲委派",group:"leaf",lvl:2,tag:"类加载",detail:[["层级","Bootstrap→Extension→Application"],["目的","安全、唯一"],["打破","自定义/线程上下文加载器"]]},
+    {id:"LifeCycle",label:"类生命周期",group:"leaf",lvl:2,tag:"类加载",detail:[["阶段","加载→验证→准备→解析→初始化→使用→卸载"]]},
+
+    {id:"Heap",label:"堆",group:"leaf",lvl:2,tag:"运行时·共享",detail:[["内容","对象实例,最大内存"],["分代","新生代(8:1:1)+老年代"],["优化","TLAB 线程本地分配"]]},
+    {id:"Method",label:"方法区",group:"leaf",lvl:2,tag:"运行时·共享",detail:[["内容","类元数据/常量池/静态变量/JIT 缓存"],["演变","永久代(1.7)→元空间(1.8)"]]},
+    {id:"VMStack",label:"虚拟机栈",group:"leaf",lvl:2,tag:"运行时·私有",detail:[["结构","栈帧:局部变量表/操作数栈/动态链接/返回地址"],["错误","StackOverflowError / OOM"]]},
+    {id:"PC",label:"程序计数器",group:"leaf",lvl:2,tag:"运行时·私有",detail:[["作用","字节码行号指示器"],["特点","唯一不会 OOM"]]},
+    {id:"NativeStack",label:"本地方法栈",group:"leaf",lvl:2,tag:"运行时·私有",detail:[["作用","为 Native 方法提供栈环境"],["机制","通过 JNI 调 C/C++"]]},
+
+    {id:"Interp",label:"解释器 + JIT",group:"leaf",lvl:2,tag:"执行引擎",detail:[["解释器","逐条翻译,预热/兜底"],["JIT","热点编译为机器码"]]},
+    {id:"Layered",label:"分层编译",group:"leaf",lvl:2,tag:"执行引擎",detail:[["C1","快速预热"],["C2","激进优化:逃逸分析、方法内联"]]},
+    {id:"HotSpot",label:"热点探测",group:"leaf",lvl:2,tag:"执行引擎",detail:[["计数器","方法调用 + 回边"],["机制","OSR 栈上替换,半衰减降温"]]},
+
+    {id:"Reach",label:"可达性分析",group:"leaf",lvl:2,tag:"垃圾回收",detail:[["方式","从 GC Roots 沿引用链搜索"],["GC Roots","栈变量/静态/常量/JNI/锁对象"]]},
+    {id:"Refs",label:"四种引用",group:"leaf",lvl:2,tag:"垃圾回收",detail:[["强","永不回收"],["软","内存不足回收"],["弱","下次 GC 回收"],["虚","仅通知"]]},
+    {id:"Algo",label:"回收算法",group:"leaf",lvl:2,tag:"垃圾回收",detail:[["标记-清除","有碎片"],["标记-复制","无碎片但浪费(新生代)"],["标记-整理","向一端移动(老年代)"]]},
+    {id:"CMS",label:"CMS",group:"leaf",lvl:2,tag:"垃圾回收器",detail:[["区域","老年代,标记-清除"],["特点","三色标记+写屏障+卡表"],["状态","JDK14 移除"]]},
+    {id:"G1",label:"G1",group:"leaf",lvl:2,tag:"垃圾回收器",detail:[["区域","全堆,Region 化"],["特点","SATB+RSet,可预测停顿"],["状态","JDK9 默认"]]}
+  ],
+  links:[
+    {s:"JVM",t:"ClassLoader"},{s:"JVM",t:"Runtime"},{s:"JVM",t:"Engine"},{s:"JVM",t:"GC"},
+    {s:"ClassLoader",t:"Parents"},{s:"ClassLoader",t:"LifeCycle"},
+    {s:"Runtime",t:"Heap"},{s:"Runtime",t:"Method"},{s:"Runtime",t:"VMStack"},{s:"Runtime",t:"PC"},{s:"Runtime",t:"NativeStack"},
+    {s:"Engine",t:"Interp"},{s:"Engine",t:"Layered"},{s:"Engine",t:"HotSpot"},
+    {s:"GC",t:"Reach"},{s:"GC",t:"Refs"},{s:"GC",t:"Algo"},{s:"GC",t:"CMS"},{s:"GC",t:"G1"},
+    // 关联(虚线)
+    {s:"GC",t:"Heap",kind:"rel"},
+    {s:"Engine",t:"GC",kind:"rel"},
+    {s:"Reach",t:"VMStack",kind:"rel"},{s:"Reach",t:"Method",kind:"rel"}
+  ]
+};
+const colorMap={root:"#1c1a17",loader:"#c0392b",runtime:"#1f6f8b",engine:"#8e6cc0",gc:"#2f7d5b",leaf:"#3a3631"};
+const groupOfLeaf={Parents:"loader",LifeCycle:"loader",Heap:"runtime",Method:"runtime",VMStack:"runtime",PC:"runtime",NativeStack:"runtime",Interp:"engine",Layered:"engine",HotSpot:"engine",Reach:"gc",Refs:"gc",Algo:"gc",CMS:"gc",G1:"gc"};
+function fill(d){return d.group==="leaf"?d3.color(colorMap[groupOfLeaf[d.id]]).brighter(0.55):colorMap[d.group];}
+const radius={0:20,1:16,2:10};
+const gw=document.getElementById('gw'),svgEl=document.getElementById('svg');
+let W=gw.clientWidth,H=gw.clientHeight;
+const svg=d3.select('#svg').attr('viewBox',`0 0 ${W} ${H}`);
+const g=svg.append('g');
+svg.call(d3.zoom().scaleExtent([0.4,3]).on('zoom',e=>g.attr('transform',e.transform)));
+const links=data.links.map(d=>({source:d.s,target:d.t,kind:d.kind||"tree"}));
+const nodes=data.nodes.map(d=>({...d}));
+const sim=d3.forceSimulation(nodes)
+  .force('link',d3.forceLink(links).id(d=>d.id).distance(d=>d.kind==="rel"?80:d.source.lvl===0?120:78).strength(d=>d.kind==="rel"?0.15:0.85))
+  .force('charge',d3.forceManyBody().strength(-470))
+  .force('center',d3.forceCenter(W/2,H/2))
+  .force('collide',d3.forceCollide().radius(d=>radius[d.lvl]+19))
+  .force('x',d3.forceX(W/2).strength(0.03))
+  .force('y',d3.forceY(d=>d.lvl===0?H*0.5:d.lvl===1?H*0.5:H*0.5).strength(0.015));
+const link=g.append('g').selectAll('line').data(links).join('line')
+  .attr('class','link').attr('stroke-width',d=>d.kind==="rel"?1.1:1.8).attr('stroke-dasharray',d=>d.kind==="rel"?"4 4":null);
+const node=g.append('g').selectAll('g').data(nodes).join('g').attr('class','node')
+  .call(d3.drag()
+    .on('start',(e,d)=>{if(!e.active)sim.alphaTarget(.3).restart();d.fx=d.x;d.fy=d.y;})
+    .on('drag',(e,d)=>{d.fx=e.x;d.fy=e.y;})
+    .on('end',(e,d)=>{if(!e.active)sim.alphaTarget(0);d.fx=null;d.fy=null;}));
+node.append('circle').attr('r',d=>radius[d.lvl]).attr('fill',d=>fill(d));
+node.append('text').attr('y',d=>radius[d.lvl]+12).attr('text-anchor','middle').attr('font-size',d=>d.lvl===0?14:d.lvl===1?12:10.5).text(d=>d.label);
+const detail=document.getElementById('detail');
+document.getElementById('closeBtn').onclick=()=>{detail.classList.remove('show');reset();};
+const adj={};links.forEach(l=>{const s=l.source.id||l.source,t=l.target.id||l.target;(adj[s]=adj[s]||new Set()).add(t);(adj[t]=adj[t]||new Set()).add(s);});
+node.on('click',(e,d)=>{
+  document.getElementById('dTag').textContent=d.tag;
+  document.getElementById('dTag').style.background=d.group==="leaf"?colorMap[groupOfLeaf[d.id]]:colorMap[d.group];
+  document.getElementById('dTitle').textContent=d.label;
+  const dl=document.getElementById('dBody');dl.innerHTML='';
+  d.detail.forEach(([k,v])=>{const dt=document.createElement('dt');dt.textContent=k;const dd=document.createElement('dd');dd.textContent=v;dl.appendChild(dt);dl.appendChild(dd);});
+  detail.classList.add('show');
+  node.style('opacity',n=>n.id===d.id||(adj[d.id]&&adj[d.id].has(n.id))?1:0.16);
+  link.style('opacity',l=>{const s=l.source.id,t=l.target.id;return s===d.id||t===d.id?0.9:0.05;});
+});
+function reset(){node.style('opacity',1);link.style('opacity',null);}
+svg.on('click',e=>{if(e.target===svgEl){detail.classList.remove('show');reset();}});
+sim.on('tick',()=>{
+  link.attr('x1',d=>d.source.x).attr('y1',d=>d.source.y).attr('x2',d=>d.target.x).attr('y2',d=>d.target.y);
+  node.attr('transform',d=>`translate(${d.x},${d.y})`);
+});
+new ResizeObserver(()=>{W=gw.clientWidth;H=gw.clientHeight;svg.attr('viewBox',`0 0 ${W} ${H}`);
+  sim.force('center',d3.forceCenter(W/2,H/2));sim.force('x',d3.forceX(W/2).strength(0.03));sim.alpha(0.3).restart();
+}).observe(gw);
+</script>
+</body>
+</html>
