@@ -6,21 +6,21 @@
 <title>Redis 知识图谱</title>
 <script src="https://artifactcdn.diabrowser.engineering/ajax/libs/d3/d3.min.js"></script>
 <style>
-  :root{
-    --bg:#f4eeec;
-    --paper:#fdfaf9;
-    --ink:#2a1a17;
-    --muted:#77655f;
-    --line:#e0d3ce;
-    --c-root:#a41e11;      /* Redis 红 */
-    --c-fast:#c15a2b;
-    --c-ds:#b8892b;
-    --c-mem:#6a7d33;
-    --c-persist:#2f7d6b;
-    --c-cache:#c0392b;
-    --c-cluster:#3a6ea5;
-    --c-tx:#6a4fa3;
-    --accent:#a41e11;
+  :root {
+    --bg: #f4efe6 !important;
+    --paper: #fbf8f1 !important;
+    --ink: #1c1a17 !important;
+    --muted: #6b6358 !important;
+    --line: #d9cfbe !important;
+    --accent: #b03a2e !important;
+    --c-root: #b03a2e !important;
+    --c-fast: #d97706 !important;
+    --c-ds: #2f7d5b !important;
+    --c-mem: #8e6cc0 !important;
+    --c-persist: #1f6f8b !important;
+    --c-cache: #6a4fa3 !important;
+    --c-cluster: #3a3631 !important;
+    --c-tx: #b03a2e !important;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
@@ -190,14 +190,14 @@
 
 <script>
 const groups = {
-  root:    {label:"Redis 核心",  color:"#a41e11"},
-  fast:    {label:"为什么快",    color:"#c15a2b"},
-  ds:      {label:"数据结构",    color:"#b8892b"},
-  mem:     {label:"过期/淘汰",   color:"#6a7d33"},
-  persist: {label:"持久化",      color:"#2f7d6b"},
-  cache:   {label:"缓存问题",    color:"#c0392b"},
-  cluster: {label:"集群",        color:"#3a6ea5"},
-  tx:      {label:"事务",        color:"#6a4fa3"}
+  root:    {label:"Redis 核心",  color:"#b03a2e"},
+  fast:    {label:"为什么快",    color:"#d97706"},
+  ds:      {label:"数据结构",    color:"#2f7d5b"},
+  mem:     {label:"过期/淘汰",   color:"#8e6cc0"},
+  persist: {label:"持久化",      color:"#1f6f8b"},
+  cache:   {label:"缓存问题",    color:"#6a4fa3"},
+  cluster: {label:"集群",        color:"#3a3631"},
+  tx:      {label:"事务",        color:"#b03a2e"}
 };
 
 const nodes = [
