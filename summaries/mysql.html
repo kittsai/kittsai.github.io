@@ -6,20 +6,20 @@
 <title>MySQL 知识图谱</title>
 <script src="https://artifactcdn.diabrowser.engineering/ajax/libs/d3/d3.min.js"></script>
 <style>
-  :root{
-    --bg:#eef1f5;
-    --paper:#fbfcfe;
-    --ink:#17212e;
-    --muted:#5c6b7d;
-    --line:#d3dbe6;
-    --c-root:#00618a;      /* MySQL 海豚蓝 */
-    --c-arch:#2b7a9b;
-    --c-mem:#c9791f;       /* InnoDB 暖橙 */
-    --c-index:#3f7d54;
-    --c-tx:#8a4f8f;
-    --c-lock:#b0464f;
-    --c-log:#4a5fa8;
-    --accent:#00618a;
+  :root {
+    --bg: #f4efe6 !important;
+    --paper: #fbf8f1 !important;
+    --ink: #1c1a17 !important;
+    --muted: #6b6358 !important;
+    --line: #d9cfbe !important;
+    --accent: #b03a2e !important;
+    --c-root: #b03a2e !important;
+    --c-arch: #d97706 !important;
+    --c-mem: #2f7d5b !important;
+    --c-index: #8e6cc0 !important;
+    --c-tx: #1f6f8b !important;
+    --c-lock: #6a4fa3 !important;
+    --c-log: #3a3631 !important;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
@@ -213,13 +213,13 @@
 
 <script>
 const groups = {
-  root:  {label:"MySQL 核心", color:"#00618a"},
-  arch:  {label:"整体架构",   color:"#2b7a9b"},
-  mem:   {label:"InnoDB 内存",color:"#c9791f"},
-  index: {label:"索引",       color:"#3f7d54"},
-  tx:    {label:"事务/MVCC",  color:"#8a4f8f"},
-  lock:  {label:"锁",         color:"#b0464f"},
-  log:   {label:"日志",       color:"#4a5fa8"}
+  root:  {label:"MySQL 核心", color:"#b03a2e"},
+  arch:  {label:"整体架构",   color:"#d97706"},
+  mem:   {label:"InnoDB 内存",color:"#2f7d5b"},
+  index: {label:"索引",       color:"#8e6cc0"},
+  tx:    {label:"事务/MVCC",  color:"#1f6f8b"},
+  lock:  {label:"锁",         color:"#6a4fa3"},
+  log:   {label:"日志",       color:"#3a3631"}
 };
 
 const nodes = [
