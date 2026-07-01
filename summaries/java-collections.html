@@ -1,47 +1,106 @@
 <style>
-  .wrap{max-width:1400px;margin:0 auto;padding:24px 24px 60px;}
-  header.masthead{border-bottom:3px double var(--ink);padding-bottom:18px;margin-bottom:24px;}
-  .kicker{font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--accent);margin-bottom:8px;}
-  h1{font-size:clamp(34px,5vw,56px);line-height:1.02;margin:0 0 10px;font-weight:700;}
-  .dek{font-size:17px;color:var(--muted);max-width:760px;line-height:1.5;margin:0;}
-  .layout{display:block;}
-  .graph-card{background:var(--paper);border:1px solid var(--line);border-radius:4px;position:relative;overflow:hidden;box-shadow:0 1px 0 #fff inset, 0 8px 26px rgba(40,32,20,.08);}
-  .graph-head{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--line);font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
-  .legend{display:flex;flex-wrap:wrap;gap:10px;}
-  .lg{display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none;opacity:.95;}
-  .lg .dot{width:11px;height:11px;border-radius:50%;display:inline-block;}
-  #graph{width:100%;height:clamp(540px,74vh,820px);display:block;}
-  .controls{display:flex;gap:8px;align-items:center;}
-  .btn{font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:11px;background:var(--ink);color:var(--paper);border:none;border-radius:3px;padding:5px 10px;cursor:pointer;}
-  .btn:hover{background:var(--accent);}
-  .node circle{cursor:pointer;stroke:#fbf8f1;stroke-width:1.5px;transition:opacity .2s;}
-  .node text{font-family:"Iowan Old Style",Palatino,Georgia,serif;fill:var(--ink);pointer-events:none;paint-order:stroke;stroke:rgba(251,248,241,.85);stroke-width:3px;}
-  .link{stroke:#b9ad97;stroke-opacity:.5;fill:none;}
-  .node.dim{opacity:.12;}
-  .link.dim{stroke-opacity:.06;}
-  aside.panel{position:absolute;top:64px;right:16px;width:330px;max-width:calc(100% - 32px);max-height:calc(100% - 84px);overflow-y:auto;background:rgba(251,248,241,.96);backdrop-filter:blur(6px);border:1px solid var(--line);border-radius:6px;padding:18px;box-shadow:0 10px 34px rgba(40,32,20,.18);opacity:0;transform:translateY(-6px) scale(.98);pointer-events:none;transition:opacity .22s ease,transform .22s ease;z-index:5;}
-  aside.panel.show{opacity:1;transform:none;pointer-events:auto;}
-  .panel .close{position:absolute;top:10px;right:12px;border:none;background:none;font-size:20px;color:var(--muted);cursor:pointer;}
-  .panel .close:hover{color:var(--accent);}
-  .panel h2{font-size:22px;margin:6px 22px 4px 0;line-height:1.12;}
-  .panel .tag{display:inline-block;font-family:"SF Mono",monospace;font-size:10px;padding:2px 8px;border-radius:20px;color:#fff;margin-bottom:14px;}
-  .panel p{font-size:15px;line-height:1.55;color:#2c2820;margin:0 0 12px;}
-  .panel ul{margin:0 0 12px;padding-left:18px;}
-  .panel li{font-size:14px;line-height:1.5;margin-bottom:6px;color:#332f26;}
-  .summary h2.sec{font-size:13px;font-family:"Helvetica Neue",Arial,sans-serif;text-transform:uppercase;letter-spacing:.22em;color:var(--accent);border-bottom:1px solid var(--line);padding-bottom:8px;margin:38px 0 18px;}
-  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:16px;}
-  .topic{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:16px 18px;box-shadow:0 6px 18px rgba(40,30,15,.05);border-top:3px solid var(--accent);}
-  .topic h3{margin:0 0 4px;font-size:18px;}
-  .topic .sub{font-family:"Helvetica Neue",Arial,sans-serif;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;}
-  .topic ul{margin:8px 0 0;padding-left:18px;font-size:14px;line-height:1.55;}
-  .topic ul li{margin-bottom:4px;}
-  .ts{font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:11px;background:#efe7d8;padding:1px 6px;border-radius:4px;color:#5b4a32;}
-  details.faq{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:0 16px;margin-bottom:10px;}
-  details.faq summary{cursor:pointer;padding:13px 0;font-weight:700;font-size:15px;list-style:none;display:flex;justify-content:space-between;align-items:center;}
+  :root{
+    --bg:#f4efe6;
+    --paper:#fbf8f1;
+    --ink:#1c1a17;
+    --muted:#6b6358;
+    --line:#d9cfbe;
+    --coll:#c0392b;   /* Collection */
+    --list:#d97706;   /* List */
+    --set:#2f7d5b;    /* Set */
+    --queue:#8e6cc0;  /* Queue */
+    --map:#1f6f8b;    /* Map */
+    --leaf:#3a3631;   /* concrete classes */
+    --accent:#b03a2e;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
+    font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;}
+  .wrap{max-width:1240px;margin:0 auto;padding:38px 30px 80px;}
+  header.masthead{border-bottom:3px double var(--ink);padding-bottom:18px;margin-bottom:8px;}
+  .kicker{font-family:"Helvetica Neue",Arial,sans-serif;text-transform:uppercase;
+    letter-spacing:.32em;font-size:11px;color:var(--accent);font-weight:700;}
+  h1{font-size:clamp(34px,5vw,58px);line-height:1.02;margin:8px 0 6px;font-weight:800;letter-spacing:-.01em;}
+  .dek{color:var(--muted);font-size:16px;max-width:760px;}
+  .layout{display:grid;grid-template-columns:minmax(0,1fr);gap:26px;margin-top:26px;}
+
+  /* graph */
+  .graph-card{background:var(--paper);border:1px solid var(--line);border-radius:12px;
+    box-shadow:0 14px 40px rgba(40,30,15,.08);overflow:hidden;}
+  .graph-head{display:flex;flex-wrap:wrap;align-items:center;gap:14px 20px;
+    padding:16px 20px;border-bottom:1px solid var(--line);}
+  .graph-head h2{font-size:20px;margin:0;font-weight:800;}
+  .legend{display:flex;flex-wrap:wrap;gap:12px;font-family:"Helvetica Neue",Arial,sans-serif;font-size:12px;color:var(--muted);}
+  .legend span{display:inline-flex;align-items:center;gap:6px;}
+  .dot{width:11px;height:11px;border-radius:50%;display:inline-block;}
+  .hint{margin-left:auto;font-family:"Helvetica Neue",Arial,sans-serif;font-size:11px;color:var(--muted);}
+  .graph-wrap{position:relative;width:100%;height:clamp(460px,68vh,720px);overflow:hidden;}
+  svg{width:100%;height:100%;display:block;cursor:grab;}
+  svg:active{cursor:grabbing;}
+  .link{stroke:#bdb1a0;stroke-opacity:.7;}
+  .node circle{stroke:var(--paper);stroke-width:2px;cursor:pointer;transition:r .15s;}
+  .node text{font-family:"Helvetica Neue",Arial,sans-serif;pointer-events:none;
+    fill:var(--ink);font-weight:600;paint-order:stroke;stroke:var(--paper);stroke-width:3px;}
+  .node:hover circle{stroke:var(--ink);}
+
+  /* tooltip / detail */
+  .detail{position:absolute;top:14px;right:14px;width:300px;max-width:calc(100% - 28px);
+    background:rgba(251,248,241,.97);border:1px solid var(--line);border-radius:10px;
+    padding:16px 18px;box-shadow:0 10px 30px rgba(40,30,15,.14);
+    font-family:"Helvetica Neue",Arial,sans-serif;display:none;}
+  .detail.show{display:block;}
+  .detail h3{margin:0 0 4px;font-size:17px;font-family:inherit;}
+  .detail .tag{display:inline-block;font-size:10px;text-transform:uppercase;letter-spacing:.12em;
+    padding:2px 8px;border-radius:20px;color:#fff;margin-bottom:10px;font-weight:700;}
+  .detail dl{margin:0;font-size:13px;line-height:1.5;}
+  .detail dt{color:var(--muted);font-weight:700;margin-top:8px;font-size:11px;text-transform:uppercase;letter-spacing:.08em;}
+  .detail dd{margin:2px 0 0;color:var(--ink);}
+  .detail .close{position:absolute;top:10px;right:12px;cursor:pointer;color:var(--muted);
+    font-size:18px;line-height:1;border:none;background:none;}
+
+  /* structured summary */
+  .summary h2.sec{font-size:13px;font-family:"Helvetica Neue",Arial,sans-serif;text-transform:uppercase;
+    letter-spacing:.22em;color:var(--accent);border-bottom:1px solid var(--line);
+    padding-bottom:8px;margin:38px 0 18px;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:16px;}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:16px 18px;
+    box-shadow:0 6px 18px rgba(40,30,15,.05);}
+  .card h3{margin:0 0 4px;font-size:18px;display:flex;align-items:center;gap:8px;}
+  .card h3 .pip{width:10px;height:10px;border-radius:2px;display:inline-block;}
+  .card .sub{font-family:"Helvetica Neue",Arial,sans-serif;font-size:11px;color:var(--muted);
+    text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;}
+  .card ul{margin:8px 0 0;padding-left:18px;font-size:14px;line-height:1.55;}
+  .card ul li{margin-bottom:4px;}
+  .card .ts{font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:11px;background:#efe7d8;
+    padding:1px 6px;border-radius:4px;color:#5b4a32;}
+  .safe-no{color:#b03a2e;font-weight:700;}
+  .safe-yes{color:#2f7d5b;font-weight:700;}
+
+  /* FAQ */
+  details.faq{background:var(--paper);border:1px solid var(--line);border-radius:8px;
+    padding:0 16px;margin-bottom:10px;}
+  details.faq summary{cursor:pointer;padding:13px 0;font-weight:700;font-size:15px;list-style:none;
+    display:flex;justify-content:space-between;align-items:center;}
   details.faq summary::-webkit-details-marker{display:none;}
   details.faq summary::after{content:"+";color:var(--accent);font-size:20px;font-family:sans-serif;}
   details.faq[open] summary::after{content:"\2013";}
-  details.faq .body{padding:0 0 14px;font-size:14px;line-height:1.6;font-family:"Helvetica Neue",Arial,sans-serif;}
+  details.faq .body{padding:0 0 14px;font-size:14px;line-height:1.6;color:#2c2a25;
+    font-family:"Helvetica Neue",Arial,sans-serif;}
+  details.faq table{width:100%;border-collapse:collapse;margin-top:6px;font-size:13px;}
+  details.faq th,details.faq td{border:1px solid var(--line);padding:6px 9px;text-align:left;vertical-align:top;}
+  details.faq th{background:#efe7d8;font-weight:700;}
+  code{font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:12px;background:#efe7d8;
+    padding:1px 5px;border-radius:4px;}
+  footer{margin-top:50px;border-top:1px solid var(--line);padding-top:14px;
+    font-family:"Helvetica Neue",Arial,sans-serif;font-size:12px;color:var(--muted);}
+
+  @media print{
+    body{background:#fff;}
+    .graph-wrap{height:520px;}
+    .hint,.detail{display:none!important;}
+    details.faq{break-inside:avoid;}
+    details.faq .body{display:block!important;}
+  }
 </style>
 <div class="wrap">
   <header class="masthead">
@@ -306,7 +365,7 @@
     源文档：Java 集合总览 · kit-docs。本页为结构化知识梳理与交互式知识图谱，便于复习与检索。
   </footer>
 </div>
-
+<script src="https://artifactcdn.diabrowser.engineering/ajax/libs/d3/d3.min.js"></script>
 <script>
 const data = {
   nodes: [
@@ -456,153 +515,3 @@ const ro=new ResizeObserver(()=>{
 });
 ro.observe(gw);
 </script>
-<script src="https://artifactcdn.diabrowser.engineering/ajax/libs/d3/d3.min.js"></script>
-const data = {
-  nodes: [
-    {id:"Iterable", label:"Iterable", group:"root", lvl:0,
-      tag:"根接口", detail:[["说明","所有单列集合的顶层接口，提供迭代能力。"]]},
-    {id:"Collection", label:"Collection", group:"coll", lvl:1,
-      tag:"单列集合根接口", detail:[["特点","单值存储，继承自 Iterable，表示一组元素。"]]},
-    {id:"Map", label:"Map", group:"map", lvl:1,
-      tag:"双列集合根接口", detail:[["特点","存储键值对，键唯一（由 equals 与 hashCode 判定），每个键最多映射一个值。"]]},
-
-    {id:"List", label:"List", group:"list", lvl:2,
-      tag:"接口", detail:[["特点","有序，可重复。"]]},
-    {id:"Set", label:"Set", group:"set", lvl:2,
-      tag:"接口", detail:[["特点","无序，不可重复。"]]},
-    {id:"Queue", label:"Queue", group:"queue", lvl:2,
-      tag:"接口", detail:[["数据结构","队列"],["特点","通常 FIFO，亦有优先级/双端变体。"],["线程安全","多数否；BlockingQueue 为是。"]]},
-
-    {id:"ArrayList", label:"ArrayList", group:"leaf", lvl:3,
-      tag:"List 实现", detail:[["数据结构","动态数组"],["查询","O(1)，内存连续按索引寻址"],["写入","尾部均摊 O(1)，首/中部 O(n)"],["扩容","首次 add→10，满后 1.5 倍"],["线程安全","否"],["场景","查多写少"]]},
-    {id:"LinkedList", label:"LinkedList", group:"leaf", lvl:3,
-      tag:"List 实现", detail:[["数据结构","双向链表"],["写入","O(1)，指针关联无需移动"],["查询","慢，需遍历"],["线程安全","否"],["场景","增删多查询少"]]},
-    {id:"Vector", label:"Vector", group:"leaf", lvl:3,
-      tag:"List 实现", detail:[["数据结构","动态数组"],["线程安全","是，方法加 synchronized"],["扩容","2 倍"]]},
-
-    {id:"HashSet", label:"HashSet", group:"leaf", lvl:3,
-      tag:"Set 实现", detail:[["底层","基于 HashMap，key 存数据、value 为固定 Object"],["顺序","无序"],["线程安全","否"]]},
-    {id:"LinkedHashSet", label:"LinkedHashSet", group:"leaf", lvl:3,
-      tag:"Set 实现", detail:[["底层","继承 HashSet，基于 LinkedHashMap"],["顺序","按插入顺序"],["线程安全","否"]]},
-    {id:"TreeSet", label:"TreeSet", group:"leaf", lvl:3,
-      tag:"Set 实现", detail:[["底层","基于 TreeMap（红黑树）"],["特点","有序、唯一"],["线程安全","否"]]},
-
-    {id:"HashMap", label:"HashMap", group:"leaf", lvl:3,
-      tag:"Map 实现", detail:[["数据结构","1.7 数组+链表；1.8 +红黑树"],["null","1 个 null 键，多个 null 值"],["扩容","负载因子 0.75，首次 put→16，满后 2 倍"],["树化","链长>8 且容量≥64 转红黑树；<6 退化"],["线程安全","否"]]},
-    {id:"LinkedHashMap", label:"LinkedHashMap", group:"leaf", lvl:3,
-      tag:"Map 实现", detail:[["数据结构","数组+双向链表+红黑树"],["说明","基于 HashMap 增加双向链表维护顺序"],["线程安全","否"]]},
-    {id:"TreeMap", label:"TreeMap", group:"leaf", lvl:3,
-      tag:"Map 实现", detail:[["数据结构","红黑树"],["特点","有序"],["线程安全","否"]]},
-    {id:"ConcurrentHashMap", label:"ConcurrentHashMap", group:"leaf", lvl:3,
-      tag:"Map 实现", detail:[["数据结构","1.7 Segment+HashEntry；1.8 Node+链表+红黑树"],["并发","1.7 分段锁；1.8 CAS+synchronized"],["扩容","多线程协作，ForwardingNode 标记，读无锁"],["线程安全","是"]]}
-  ],
-  links: [
-    {s:"Iterable",t:"Collection"},
-    {s:"Collection",t:"List"},{s:"Collection",t:"Set"},{s:"Collection",t:"Queue"},
-    {s:"List",t:"ArrayList"},{s:"List",t:"LinkedList"},{s:"List",t:"Vector"},
-    {s:"Set",t:"HashSet"},{s:"Set",t:"LinkedHashSet"},{s:"Set",t:"TreeSet"},
-    {s:"Map",t:"HashMap"},{s:"Map",t:"LinkedHashMap"},{s:"Map",t:"TreeMap"},{s:"Map",t:"ConcurrentHashMap"},
-    // implementation /底层依赖关系（虚线）
-    {s:"HashSet",t:"HashMap",kind:"impl"},
-    {s:"LinkedHashSet",t:"HashSet",kind:"impl"},
-    {s:"TreeSet",t:"TreeMap",kind:"impl"},
-    {s:"LinkedHashMap",t:"HashMap",kind:"impl"}
-  ]
-};
-
-const colorMap = {root:"#1c1a17",coll:"#c0392b",list:"#d97706",set:"#2f7d5b",
-  queue:"#8e6cc0",map:"#1f6f8b",leaf:"#3a3631"};
-const radius = {0:18,1:16,2:13,3:10};
-
-const gw = document.getElementById('gw');
-const svgEl = document.getElementById('svg');
-let W = gw.clientWidth, H = gw.clientHeight;
-
-const svg = d3.select('#svg').attr('viewBox',`0 0 ${W} ${H}`);
-const g = svg.append('g');
-
-const zoom = d3.zoom().scaleExtent([0.4,3]).on('zoom',(e)=>g.attr('transform',e.transform));
-svg.call(zoom);
-
-const links = data.links.map(d=>({source:d.s,target:d.t,kind:d.kind||"tree"}));
-const nodes = data.nodes.map(d=>({...d}));
-
-const sim = d3.forceSimulation(nodes)
-  .force('link', d3.forceLink(links).id(d=>d.id).distance(d=>d.kind==="impl"?70:90).strength(d=>d.kind==="impl"?0.25:0.8))
-  .force('charge', d3.forceManyBody().strength(-560))
-  .force('center', d3.forceCenter(W/2, H/2))
-  .force('collide', d3.forceCollide().radius(d=>radius[d.lvl]+22))
-  .force('x', d3.forceX(W/2).strength(0.04))
-  .force('y', d3.forceY(d=>d.lvl===1?H*0.32:d.lvl===0?H*0.16:H/2).strength(0.08));
-
-const link = g.append('g').selectAll('line').data(links).join('line')
-  .attr('class','link')
-  .attr('stroke-width',d=>d.kind==="impl"?1.2:1.8)
-  .attr('stroke-dasharray',d=>d.kind==="impl"?"4 4":null);
-
-const node = g.append('g').selectAll('g').data(nodes).join('g')
-  .attr('class','node')
-  .call(d3.drag()
-    .on('start',(e,d)=>{if(!e.active)sim.alphaTarget(.3).restart();d.fx=d.x;d.fy=d.y;})
-    .on('drag',(e,d)=>{d.fx=e.x;d.fy=e.y;})
-    .on('end',(e,d)=>{if(!e.active)sim.alphaTarget(0);d.fx=null;d.fy=null;}));
-
-node.append('circle')
-  .attr('r',d=>radius[d.lvl])
-  .attr('fill',d=>colorMap[d.group]);
-
-node.append('text')
-  .attr('y',d=>radius[d.lvl]+13)
-  .attr('text-anchor','middle')
-  .attr('font-size',d=>d.lvl<=1?13:11)
-  .text(d=>d.label);
-
-// detail panel
-const detail = document.getElementById('detail');
-document.getElementById('closeBtn').onclick=()=>{detail.classList.remove('show');resetHighlight();};
-let selected=null;
-
-node.on('click',(e,d)=>{
-  selected=d.id;
-  document.getElementById('dTag').textContent=d.tag;
-  document.getElementById('dTag').style.background=colorMap[d.group];
-  document.getElementById('dTitle').textContent=d.label;
-  const dl=document.getElementById('dBody');dl.innerHTML='';
-  d.detail.forEach(([k,v])=>{
-    const dt=document.createElement('dt');dt.textContent=k;
-    const dd=document.createElement('dd');dd.textContent=v;
-    dl.appendChild(dt);dl.appendChild(dd);
-  });
-  detail.classList.add('show');
-  highlight(d.id);
-});
-
-const adj={};
-links.forEach(l=>{
-  const s=l.source.id||l.source,t=l.target.id||l.target;
-  (adj[s]=adj[s]||new Set()).add(t);
-  (adj[t]=adj[t]||new Set()).add(s);
-});
-function highlight(id){
-  node.style('opacity',n=> n.id===id||(adj[id]&&adj[id].has(n.id))?1:0.18);
-  link.style('opacity',l=>{const s=l.source.id,t=l.target.id;return s===id||t===id?0.9:0.06;});
-}
-function resetHighlight(){node.style('opacity',1);link.style('opacity',null);selected=null;}
-svg.on('click',(e)=>{if(e.target===svgEl){detail.classList.remove('show');resetHighlight();}});
-
-sim.on('tick',()=>{
-  link.attr('x1',d=>d.source.x).attr('y1',d=>d.source.y)
-      .attr('x2',d=>d.target.x).attr('y2',d=>d.target.y);
-  node.attr('transform',d=>`translate(${d.x},${d.y})`);
-});
-
-const ro=new ResizeObserver(()=>{
-  W=gw.clientWidth;H=gw.clientHeight;
-  svg.attr('viewBox',`0 0 ${W} ${H}`);
-  sim.force('center',d3.forceCenter(W/2,H/2));
-  sim.force('x',d3.forceX(W/2).strength(0.04));
-  sim.alpha(0.3).restart();
-});
-ro.observe(gw);
-</script>
-</div>
