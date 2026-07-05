@@ -25,15 +25,17 @@ if (mode === 'knowledges') {
 <aside class="left-sidebar">
   <div class="sb-title">{mode === 'knowledges' ? '知识笔记' : '读书记录'}</div>
   {Object.entries(categories).map(([cat, catItems]) => (
-    <div class="sb-group">{cat}</div>
-    <ul>
-      {catItems.map(item => (
-        <li><a href={`/${mode}/${item.id}`}
-               class:list={[{ active: item.id === currentSlug }]}>
-          {item.data.title}
-        </a></li>
-      ))}
-    </ul>
+    <details class="sb-category" open>
+      <summary class="sb-group">{cat}</summary>
+      <ul>
+        {catItems.map(item => (
+          <li><a href={`/${mode}/${item.id}`}
+                 class:list={[{ active: item.id === currentSlug }]}>
+            {item.data.title}
+          </a></li>
+        ))}
+      </ul>
+    </details>
   ))}
 </aside>
 
@@ -53,12 +55,34 @@ if (mode === 'knowledges') {
     font-weight: 700;
     margin-bottom: 12px;
   }
+  .sb-category {
+    margin-top: 8px;
+  }
   .sb-group {
     font-weight: 700;
     color: var(--ink);
     padding: 5px 10px;
     font-size: 12px;
-    margin-top: 8px;
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .sb-group::before {
+    content: '';
+    width: 0;
+    height: 0;
+    border-left: 4px solid var(--muted);
+    border-top: 4px solid transparent;
+    border-bottom: 4px solid transparent;
+    transition: transform 0.2s;
+  }
+  .sb-category[open] > .sb-group::before {
+    transform: rotate(90deg);
+  }
+  .sb-group::-webkit-details-marker {
+    display: none;
   }
   ul { list-style: none; padding-left: 0; }
   li { margin: 1px 0; }
