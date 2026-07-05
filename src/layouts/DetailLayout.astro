@@ -17,4 +17,10 @@ const { title } = Astro.props;
     grid-template-columns: minmax(180px, 220px) 1fr;
     height: calc(100vh - 52px);
   }
+
+  @media (max-width: 768px) {
+    .detail-layout {
+      grid-template-columns: 1fr;
+    }
+  }
 </style>
