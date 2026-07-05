@@ -22,11 +22,16 @@ if (mode === 'knowledges') {
   });
 }
 ---
-<aside class="left-sidebar">
-  <div class="sb-title">{mode === 'knowledges' ? '知识笔记' : '读书记录'}</div>
-  {Object.entries(categories).map(([cat, catItems]) => (
-    <details class="sb-category" open>
-      <summary class="sb-group">{cat}</summary>
+<aside class="left-sidebar" id="leftSidebar">
+  <button class="collapse-btn" id="collapseBtn" aria-label="收起目录">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <path d="M10 4L6 8L10 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </button>
+  <div class="sidebar-content">
+    <div class="sb-title">{mode === 'knowledges' ? '知识笔记' : '读书记录'}</div>
+    {Object.entries(categories).map(([cat, catItems]) => (
+      <div class="sb-group">{cat}</div>
       <ul>
         {catItems.map(item => (
           <li><a href={`/${mode}/${item.id}`}
@@ -35,18 +40,72 @@ if (mode === 'knowledges') {
           </a></li>
         ))}
       </ul>
-    </details>
-  ))}
+    ))}
+  </div>
 </aside>
+
+<script>
+  const collapseBtn = document.getElementById('collapseBtn');
+  const sidebar = document.getElementById('leftSidebar');
+
+  collapseBtn?.addEventListener('click', () => {
+    sidebar?.classList.toggle('collapsed');
+    const isCollapsed = sidebar?.classList.contains('collapsed');
+    collapseBtn.setAttribute('aria-label', isCollapsed ? '展开目录' : '收起目录');
+  });
+</script>
 
 <style>
   .left-sidebar {
+    position: relative;
     border-right: 1px solid var(--line);
-    padding: 20px 0 20px 20px;
-    overflow-y: auto;
+    overflow: hidden;
     font-family: "Helvetica Neue", Arial, sans-serif;
     font-size: 13px;
+    transition: width 0.3s ease;
+    width: 220px;
   }
+  .left-sidebar.collapsed {
+    width: 0;
+    border-right: none;
+  }
+  .left-sidebar.collapsed .sidebar-content {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .collapse-btn {
+    position: absolute;
+    right: 8px;
+    top: 8px;
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    transition: all .2s;
+    z-index: 10;
+  }
+  .collapse-btn:hover {
+    background: var(--ink);
+    color: var(--paper);
+    border-color: var(--ink);
+  }
+  .left-sidebar.collapsed .collapse-btn {
+    right: -32px;
+  }
+
+  .sidebar-content {
+    padding: 20px 0 20px 20px;
+    opacity: 1;
+    transition: opacity 0.2s;
+  }
+
   .sb-title {
     font-size: 11px;
     text-transform: uppercase;
@@ -55,34 +114,12 @@ if (mode === 'knowledges') {
     font-weight: 700;
     margin-bottom: 12px;
   }
-  .sb-category {
-    margin-top: 8px;
-  }
   .sb-group {
     font-weight: 700;
     color: var(--ink);
     padding: 5px 10px;
     font-size: 12px;
-    cursor: pointer;
-    list-style: none;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .sb-group::before {
-    content: '';
-    width: 0;
-    height: 0;
-    border-left: 4px solid var(--muted);
-    border-top: 4px solid transparent;
-    border-bottom: 4px solid transparent;
-    transition: transform 0.2s;
-  }
-  .sb-category[open] > .sb-group::before {
-    transform: rotate(90deg);
-  }
-  .sb-group::-webkit-details-marker {
-    display: none;
+    margin-top: 8px;
   }
   ul { list-style: none; padding-left: 0; }
   li { margin: 1px 0; }
