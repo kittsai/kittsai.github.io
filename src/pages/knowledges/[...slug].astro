@@ -31,6 +31,11 @@ try {
   <LeftSidebar slot="sidebar" currentSlug={note.id} mode="knowledges" />
 
   <div slot="main" class="main-content">
+    <div class="mobile-toc-bar" id="mobileTocBar">
+      <button class="toc-toggle" id="sidebarToggle">📑 目录</button>
+      <button class="toc-toggle" id="rightTocToggle">📑 本页目录</button>
+    </div>
+
     <TabBar client:load />
 
     <div class="tab-panel active tab-original" id="tab-original">
@@ -43,8 +48,42 @@ try {
     <div class="tab-panel tab-ai" id="tab-ai">
       <div class="ai-embed" set:html={aiSummaryHtml} />
     </div>
+
+    <div class="mobile-overlay" id="mobileOverlay"></div>
   </div>
 </DetailLayout>
+
+<script>
+  const sidebar = document.getElementById('leftSidebar');
+  const rightToc = document.querySelector('.right-toc');
+  const overlay = document.getElementById('mobileOverlay');
+  const sidebarBtn = document.getElementById('sidebarToggle');
+  const rightTocBtn = document.getElementById('rightTocToggle');
+
+  function closeAll() {
+    sidebar?.classList.remove('mobile-open');
+    rightToc?.classList.remove('mobile-open');
+    overlay?.classList.remove('active');
+  }
+
+  sidebarBtn?.addEventListener('click', () => {
+    const isOpen = sidebar?.classList.toggle('mobile-open');
+    overlay?.classList.toggle('active', isOpen);
+    rightToc?.classList.remove('mobile-open');
+  });
+
+  rightTocBtn?.addEventListener('click', () => {
+    const isOpen = rightToc?.classList.toggle('mobile-open');
+    overlay?.classList.toggle('active', isOpen);
+    sidebar?.classList.remove('mobile-open');
+  });
+
+  overlay?.addEventListener('click', closeAll);
+
+  // 点击链接后自动关闭侧边栏
+  sidebar?.querySelectorAll('a').forEach(a => a.addEventListener('click', closeAll));
+  rightToc?.querySelectorAll('a').forEach(a => a.addEventListener('click', closeAll));
+</script>
 
 <style>
   .main-content { overflow: hidden; height: 100%; }
@@ -86,7 +125,40 @@ try {
 
   .no-summary { padding: 40px; text-align: center; color: var(--muted); font-family: "Helvetica Neue", Arial, sans-serif; }
 
+  /* Mobile TOC bar - hidden on desktop */
+  .mobile-toc-bar { display: none; }
+
   @media (max-width: 768px) {
-    .tab-panel.active.tab-original { grid-template-columns: 1fr; }
+    .mobile-toc-bar {
+      display: flex;
+      gap: 8px;
+      padding: 8px 16px;
+      background: var(--paper);
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 52px;
+      z-index: 90;
+    }
+    .toc-toggle {
+      flex: 1;
+      padding: 8px 12px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--ink);
+      font-size: 13px;
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .toc-toggle:hover { background: var(--line); }
+    .toc-toggle:active { background: var(--accent); color: #fff; }
+
+    .tab-panel.active.tab-original {
+      grid-template-columns: 1fr;
+      height: calc(100vh - 52px - 41px);
+    }
+    .tab-panel.active.tab-ai { height: calc(100vh - 52px - 41px); }
+    .markdown-body { padding: 16px; }
   }
 </style>
