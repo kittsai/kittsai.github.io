@@ -66,8 +66,8 @@ if (mode === 'knowledges') {
     width: 220px;
   }
   .left-sidebar.collapsed {
-    width: 0;
-    border-right: none;
+    width: 32px;
+    min-width: 32px;
   }
   .left-sidebar.collapsed .sidebar-content {
     opacity: 0;
@@ -96,8 +96,13 @@ if (mode === 'knowledges') {
     color: var(--paper);
     border-color: var(--ink);
   }
-  .left-sidebar.collapsed .collapse-btn {
-    right: -32px;
+  .left-sidebar.collapsed {
+    width: 32px;
+    min-width: 32px;
+  }
+  .left-sidebar.collapsed .sidebar-content {
+    opacity: 0;
+    pointer-events: none;
   }
 
   .sidebar-content {
