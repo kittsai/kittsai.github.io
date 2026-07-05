@@ -2,7 +2,7 @@
 ---
 <nav>
   <a href="/" class="logo">kit-docs</a>
-  <button class="hamburger" id="navToggle" aria-label="打开菜单">
+  <button class="hamburger" id="navToggle" aria-label="打开菜单" aria-expanded="false">
     <span></span><span></span><span></span>
   </button>
   <div class="links" id="navLinks">
@@ -28,6 +28,7 @@
     const isOpen = links?.classList.toggle('mobile-open');
     overlay?.classList.toggle('active', isOpen);
     toggle?.classList.toggle('active', isOpen);
+    toggle?.setAttribute('aria-expanded', String(isOpen));
   });
 
   overlay?.addEventListener('click', closeMenu);

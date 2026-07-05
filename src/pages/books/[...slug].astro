@@ -20,7 +20,7 @@ const { Content } = await render(book);
 
   <div slot="main" class="main-content">
     <div class="mobile-toc-bar" id="mobileTocBar">
-      <button class="toc-toggle" id="sidebarToggle">📑 目录</button>
+      <button class="toc-toggle" id="sidebarToggle" aria-expanded="false">📑 目录</button>
     </div>
 
     <div class="markdown-body">
@@ -39,14 +39,23 @@ const { Content } = await render(book);
   function closeAll() {
     sidebar?.classList.remove('mobile-open');
     overlay?.classList.remove('active');
+    document.body.style.overflow = '';
+    sidebarBtn?.setAttribute('aria-expanded', 'false');
   }
 
   sidebarBtn?.addEventListener('click', () => {
     const isOpen = sidebar?.classList.toggle('mobile-open');
     overlay?.classList.toggle('active', isOpen);
+    document.body.style.overflow = isOpen ? 'hidden' : '';
+    sidebarBtn?.setAttribute('aria-expanded', String(isOpen));
   });
 
   overlay?.addEventListener('click', closeAll);
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeAll();
+  });
+
   sidebar?.querySelectorAll('a').forEach(a => a.addEventListener('click', closeAll));
 </script>
 

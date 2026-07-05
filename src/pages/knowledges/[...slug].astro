@@ -32,8 +32,8 @@ try {
 
   <div slot="main" class="main-content">
     <div class="mobile-toc-bar" id="mobileTocBar">
-      <button class="toc-toggle" id="sidebarToggle">📑 目录</button>
-      <button class="toc-toggle" id="rightTocToggle">📑 本页目录</button>
+      <button class="toc-toggle" id="sidebarToggle" aria-expanded="false">📑 目录</button>
+      <button class="toc-toggle" id="rightTocToggle" aria-expanded="false">📑 本页目录</button>
     </div>
 
     <TabBar client:load />
@@ -64,21 +64,34 @@ try {
     sidebar?.classList.remove('mobile-open');
     rightToc?.classList.remove('mobile-open');
     overlay?.classList.remove('active');
+    document.body.style.overflow = '';
+    sidebarBtn?.setAttribute('aria-expanded', 'false');
+    rightTocBtn?.setAttribute('aria-expanded', 'false');
   }
 
   sidebarBtn?.addEventListener('click', () => {
     const isOpen = sidebar?.classList.toggle('mobile-open');
     overlay?.classList.toggle('active', isOpen);
     rightToc?.classList.remove('mobile-open');
+    document.body.style.overflow = isOpen ? 'hidden' : '';
+    sidebarBtn?.setAttribute('aria-expanded', String(isOpen));
+    rightTocBtn?.setAttribute('aria-expanded', 'false');
   });
 
   rightTocBtn?.addEventListener('click', () => {
     const isOpen = rightToc?.classList.toggle('mobile-open');
     overlay?.classList.toggle('active', isOpen);
     sidebar?.classList.remove('mobile-open');
+    document.body.style.overflow = isOpen ? 'hidden' : '';
+    rightTocBtn?.setAttribute('aria-expanded', String(isOpen));
+    sidebarBtn?.setAttribute('aria-expanded', 'false');
   });
 
   overlay?.addEventListener('click', closeAll);
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeAll();
+  });
 
   // 点击链接后自动关闭侧边栏
   sidebar?.querySelectorAll('a').forEach(a => a.addEventListener('click', closeAll));
