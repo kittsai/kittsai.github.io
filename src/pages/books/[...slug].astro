@@ -19,11 +19,36 @@ const { Content } = await render(book);
   <LeftSidebar slot="sidebar" currentSlug={book.id} mode="books" />
 
   <div slot="main" class="main-content">
+    <div class="mobile-toc-bar" id="mobileTocBar">
+      <button class="toc-toggle" id="sidebarToggle">📑 目录</button>
+    </div>
+
     <div class="markdown-body">
       <Content />
     </div>
+
+    <div class="mobile-overlay" id="mobileOverlay"></div>
   </div>
 </DetailLayout>
+
+<script>
+  const sidebar = document.getElementById('leftSidebar');
+  const overlay = document.getElementById('mobileOverlay');
+  const sidebarBtn = document.getElementById('sidebarToggle');
+
+  function closeAll() {
+    sidebar?.classList.remove('mobile-open');
+    overlay?.classList.remove('active');
+  }
+
+  sidebarBtn?.addEventListener('click', () => {
+    const isOpen = sidebar?.classList.toggle('mobile-open');
+    overlay?.classList.toggle('active', isOpen);
+  });
+
+  overlay?.addEventListener('click', closeAll);
+  sidebar?.querySelectorAll('a').forEach(a => a.addEventListener('click', closeAll));
+</script>
 
 <style>
   .main-content { overflow-y: auto; height: 100%; }
@@ -33,4 +58,33 @@ const { Content } = await render(book);
   .markdown-body :global(p) { margin: 8px 0; font-size: 14px; }
   .markdown-body :global(ul), .markdown-body :global(ol) { padding-left: 22px; margin: 6px 0; }
   .markdown-body :global(li) { margin: 4px 0; font-size: 14px; }
+
+  .mobile-toc-bar { display: none; }
+
+  @media (max-width: 768px) {
+    .mobile-toc-bar {
+      display: flex;
+      gap: 8px;
+      padding: 8px 16px;
+      background: var(--paper);
+      border-bottom: 1px solid var(--line);
+      position: relative;
+      z-index: 90;
+    }
+    .toc-toggle {
+      flex: 1;
+      padding: 8px 12px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--ink);
+      font-size: 13px;
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .toc-toggle:hover { background: var(--line); }
+    .toc-toggle:active { background: var(--accent); color: #fff; }
+    .markdown-body { padding: 16px; max-width: 100%; }
+  }
 </style>
