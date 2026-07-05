@@ -22,8 +22,19 @@ if (mode === 'knowledges') {
   });
 }
 ---
-<aside class="left-sidebar">
-  <div class="sb-title">{mode === 'knowledges' ? '知识笔记' : '读书记录'}</div>
+
+<button class="mobile-menu-btn" id="menuBtn" aria-label="打开目录">
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+    <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+  </svg>
+</button>
+
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+<aside class="left-sidebar" id="sidebar">
+  <div class="sb-header">
+    <div class="sb-title">{mode === 'knowledges' ? '知识笔记' : '读书记录'}</div>
+    <button class="close-btn" id="closeBtn" aria-label="关闭">&times;</button>
+  </div>
   {Object.entries(categories).map(([cat, catItems]) => (
     <div class="sb-group">{cat}</div>
     <ul>
@@ -37,13 +48,82 @@ if (mode === 'knowledges') {
   ))}
 </aside>
 
+<script>
+  const menuBtn = document.getElementById('menuBtn');
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+  const closeBtn = document.getElementById('closeBtn');
+
+  function openSidebar() {
+    sidebar?.classList.add('open');
+    overlay?.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeSidebar() {
+    sidebar?.classList.remove('open');
+    overlay?.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  menuBtn?.addEventListener('click', openSidebar);
+  closeBtn?.addEventListener('click', closeSidebar);
+  overlay?.addEventListener('click', closeSidebar);
+</script>
+
 <style>
+  .mobile-menu-btn {
+    display: none;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--paper);
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(176, 58, 46, .3);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .4);
+    z-index: 200;
+    opacity: 0;
+    transition: opacity .3s;
+  }
+  .sidebar-overlay.open {
+    opacity: 1;
+  }
+
   .left-sidebar {
     border-right: 1px solid var(--line);
     padding: 20px 0 20px 20px;
     overflow-y: auto;
     font-family: "Helvetica Neue", Arial, sans-serif;
     font-size: 13px;
+  }
+  .sb-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .close-btn {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 0 20px 0 0;
+    line-height: 1;
   }
   .sb-title {
     font-size: 11px;
@@ -72,4 +152,30 @@ if (mode === 'knowledges') {
   }
   a:hover { color: var(--ink); background: rgba(176, 58, 46, .05); }
   a.active { color: var(--accent); background: rgba(176, 58, 46, .08); font-weight: 600; }
+
+  @media (max-width: 768px) {
+    .mobile-menu-btn {
+      display: flex;
+    }
+    .sidebar-overlay {
+      display: block;
+    }
+    .left-sidebar {
+      position: fixed;
+      left: -280px;
+      top: 0;
+      width: 280px;
+      height: 100vh;
+      background: var(--paper);
+      z-index: 300;
+      transition: left .3s ease;
+      padding-top: 60px;
+    }
+    .left-sidebar.open {
+      left: 0;
+    }
+    .close-btn {
+      display: block;
+    }
+  }
 </style>
