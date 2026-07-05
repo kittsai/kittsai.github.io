@@ -32,6 +32,10 @@
 
   overlay?.addEventListener('click', closeMenu);
   links?.querySelectorAll('a').forEach(a => a.addEventListener('click', closeMenu));
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeMenu();
+  });
 </script>
 
 <style>
