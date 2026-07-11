@@ -7,13 +7,7 @@ export default defineConfig({
   integrations: [
     starlight({
       title: 'Kit Docs',
-      customCss: './src/styles/custom.css',
-      themeConfig: {
-        prismaThemes: {
-          light: 'github-light',
-          dark: 'github-dark',
-        },
-      },
+      customCss: ['./src/styles/custom.css'],
       sidebar: [
         {
           label: '知识笔记',
