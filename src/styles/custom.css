@@ -119,7 +119,7 @@ html[data-theme='dark'] .sidebar-item a:hover {
   font-weight: 500;
   color: var(--sl-color-accent);
   background-color: var(--sl-color-accent-low);
-  border-left: 2px solid var(--sl-color-accent);
+  box-shadow: inset 3px 0 0 var(--sl-color-accent);
 }
 
 /* Secondary menu indentation */
@@ -231,8 +231,13 @@ img {
 }
 
 .card:hover, .sl-card:hover {
-  transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .card:hover, .sl-card:hover {
+    transform: translateY(-2px);
+  }
 }
 
 html[data-theme='dark'] .card:hover,
@@ -256,7 +261,13 @@ html[data-theme='dark'] .sl-card:hover {
 }
 
 .button:hover {
-  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .button:hover {
+    transform: translateY(-1px);
+  }
 }
 
 .button.primary {
