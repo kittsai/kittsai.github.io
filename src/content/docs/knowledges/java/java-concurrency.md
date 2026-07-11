@@ -2,7 +2,12 @@
 title: Java并发
 category: Java
 description: Java 并发编程核心知识：线程、锁、并发工具、线程池等。
+tableOfContents:
+  minHeadingLevel: 1
+  maxHeadingLevel: 5
 ---
+
+
 
 # Java并发
 
@@ -14,8 +19,7 @@ description: Java 并发编程核心知识：线程、锁、并发工具、线�
 
 # Java内存模型
 
-> [!info] JMM
-> 主要解决可见性、有序性，基本保证原子性操作。
+> **JMM** 主要解决可见性、有序性，基本保证原子性操作。
 
 ![JMM总览](/images/JMM总览.png)
 
@@ -73,8 +77,7 @@ JIT在编译字节码时，会在关键位置插入四种内存屏障指令。
 
 # volatile
 
-> [!NOTE] volatile
-> 最轻量的同步机制，通过写前StoreStore+写后StoreLoad、读后LoadLoad+LoadStore的内存屏障策略，保证多线程环境下的可见性和有序性，但不保证原子性。
+> **volatile** 最轻量的同步机制，通过写前 StoreStore + 写后 StoreLoad、读后 LoadLoad + LoadStore 的内存屏障策略，保证多线程环境下的可见性和有序性，但不保证原子性。
 
 - 可见性：
 	- 写入：volatile写后插入 StoreLoad屏障，强制将当前线程工作内存刷新到主内存。
@@ -85,8 +88,7 @@ JIT在编译字节码时，会在关键位置插入四种内存屏障指令。
 
 # synchronized
 
-> [!NOTE] synchronized
-> 较重的同步机制，保证原子性、可见性、有序性。
+> **synchronized** 较重的同步机制，保证原子性、可见性、有序性。
 
 synchronized用法：
 - 修饰普通方法：锁当前实例对象this。
@@ -111,8 +113,7 @@ synchronized用法：
 
 # final
 
-> [!info] final
-> 解决不可变对象的安全发布问题。
+> **final** 解决不可变对象的安全发布问题。
 
 核心保证是：当一个对象的构造函数执行完毕，且 `this` 引用没有在构造期间逸出，那么其他线程即使没有同步，也能立刻看到该对象中所有 `final` 字段的正确初始化值。
 
@@ -156,8 +157,7 @@ ReentrantLock、Semaphore、CountDownLatch等都是基于AQS实现的。
 
 ## ReentrantLock
 
-> [!NOTE] 锁模式
-> 独占模式
+> **锁模式**：独占模式
 
 ReentrantLock是一个可重入的互斥锁，内部有一个继承自AQS的`Sync`，并分为`公平锁`和`非公平锁`两种实现，默认为实现为`非公平锁`。
 
@@ -178,8 +178,7 @@ ReentrantLock是一个可重入的互斥锁，内部有一个继承自AQS的`Syn
 
 ## Semaphore
 
-> [!NOTE] 锁模式
-> 共享模式
+> **锁模式**：共享模式
 
 Semaphore是信号量，将state表示为**剩余许可证数量**，来控制多个线程访问资源。内部有一个继承自AQS的`Sync`，并分为`公平锁`和`非公平锁`两种实现，默认为实现为`非公平锁`。
 
@@ -197,8 +196,7 @@ Semaphore是信号量，将state表示为**剩余许可证数量**，来控制�
 
 ## CountDownLatch
 
-> [!NOTE] 锁模式
-> 共享模式
+> **锁模式**：共享模式
 
 CountDownLatch是倒计时门闩，将state表示为**还需等待的事件数量**，是一个**一次性的共享模式实现**。
 
@@ -353,4 +351,3 @@ ArrayBlockingQueue和LinkedBlockingQueue的区别：
 
 ---
 
-<KnowledgeGraph />

@@ -6,7 +6,7 @@
 :root {
   /* Background colors */
   --sl-color-bg: #ffffff;
-  --sl-color-bg-sidebar: #f8fafc;
+  --sl-color-bg-sidebar: #ffffff;
   --sl-color-bg-nav: #ffffff;
   --sl-color-bg-inline-code: #f1f5f9;
 
@@ -142,8 +142,6 @@ slot[name='hero'] ~ .copy,
 h1 {
   font-size: 32px;
   font-weight: 700;
-  border-bottom: 1px solid var(--sl-color-border);
-  padding-bottom: 16px;
   margin-bottom: 24px;
 }
 
@@ -184,11 +182,16 @@ code {
 
 /* Blockquotes */
 blockquote {
-  border-left: 3px solid var(--sl-color-accent);
-  background-color: var(--sl-color-accent-low);
+  border-left: 3px solid #94a3b8;
+  background-color: #f1f5f9;
   padding: 16px 24px;
   border-radius: 0 8px 8px 0;
   margin: 24px 0;
+}
+
+html[data-theme='dark'] blockquote {
+  border-left-color: #475569;
+  background-color: #1e293b;
 }
 
 /* Tables */
@@ -216,6 +219,69 @@ tr:hover {
 img {
   border-radius: 8px;
   max-width: 100%;
+}
+
+/* ============================================
+   Hero (Splash Page)
+   ============================================ */
+
+/* Override Starlight's 2-column grid to single column for centering */
+@media (min-width: 50rem) {
+  .hero {
+    grid-template-columns: 1fr !important;
+    text-align: center;
+    padding-block: clamp(2.5rem, calc(1rem + 10vmin), 10rem);
+  }
+
+  .hero .copy {
+    align-items: center;
+  }
+
+  .hero .actions {
+    justify-content: center;
+  }
+}
+
+/* Hero primary button */
+.hero .actions a.sl-link-button:not(.minimal) {
+  background-color: var(--sl-color-accent);
+  color: #fff;
+  border: none;
+  padding: 12px 28px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+  transition: background-color 0.2s, transform 0.15s, box-shadow 0.2s;
+}
+
+.hero .actions a.sl-link-button:not(.minimal):hover {
+  background-color: var(--sl-color-accent-high);
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.4);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero .actions a.sl-link-button:not(.minimal):hover {
+    transform: translateY(-2px);
+  }
+}
+
+/* Hero minimal (GitHub) button */
+.hero .actions a.sl-link-button.minimal {
+  background-color: transparent;
+  color: var(--sl-color-text-secondary);
+  border: 1px solid var(--sl-color-border);
+  padding: 12px 28px;
+  font-size: 16px;
+  font-weight: 500;
+  border-radius: 10px;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.hero .actions a.sl-link-button.minimal:hover {
+  color: var(--sl-color-text);
+  border-color: var(--sl-color-text-secondary);
+  background-color: var(--sl-color-accent-low);
 }
 
 /* ============================================

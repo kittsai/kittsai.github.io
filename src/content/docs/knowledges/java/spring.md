@@ -2,7 +2,12 @@
 title: Spring
 category: Java
 description: Spring 框架核心：IOC、AOP、Bean 生命周期、事务管理等。
+tableOfContents:
+  minHeadingLevel: 1
+  maxHeadingLevel: 5
 ---
+
+
 
 # Spring
 
@@ -10,8 +15,7 @@ Spring是一个轻量级的Java开发框架，目标是让Java开发者能专注
 
 ## 依赖注入
 
-> [!NOTE] IOC
-> IOC，全称Inversion of Control，控制反转。不是Spring发明的，是一种设计原则。
+> **IOC**，全称 Inversion of Control，控制反转。不是 Spring 发明的，是一种设计原则。
 
 常见实现IOC的方式：
 - Service Locator：组件主动从容器中查找依赖，如：context.getBean("xxx"); 这种方式对业务代码侵入性较高。
@@ -77,8 +81,7 @@ Spring官方推荐使用构造器注入必须依赖，而Setter注入可选依�
 
 ### DI原理
 
-> [!NOTE] 注入过程
-> BeanDefinition注册 -> 注入点元数据收集 -> 依赖查找与解析 -> 依赖写入
+> **注入过程**：BeanDefinition注册 → 注入点元数据收集 → 依赖查找与解析 → 依赖写入
 
 在Spring中，每一个被管理的对象在诞生之前，都会被解析成一个`BeanDefinition`对象，它相当于Bean的图纸，包含：
 - 类的全限定名
@@ -199,8 +202,7 @@ AOP核心术语：
 
 ## Spring AOP原理
 
-> [!NOTE] 原理
-> 动态代理
+> **原理**：动态代理
 
 Spring AOP基于**动态代理**实现，常见动态代理方式：
 - JDK动态代理：要求目标类至少实现一个接口，通过反射在运行时动态生成代理类的字节码，这个代理类实现了目标类的所有接口，但并非目标类的子类。所有方法调用都会被转发到一个`InvocationHandler`上。
@@ -488,10 +490,7 @@ Spring Cloud建立在Spring Boot之上，每个组件都是以Starter形式提�
 
 ## Nacos
 
-> [!NOTE] 介绍
-> Nacos，全称：Dynamic Naming and Configuration Service，是一个面向云原生和AI应用的动态服务发现、配置管理和AI管理中心平台。
-> 最早围绕两个核心问题构建：应用如何找到服务、应用如何安全地读取和更新配置。进入3.x后，Nacos在这些能力之上扩展了AI管理中心，用来管理Skill、A2A Agent、MCP server、Prompt等AI资源。
-> 官网：https://nacos.io/
+> **Nacos**，全称：Dynamic Naming and Configuration Service，是一个面向云原生和 AI 应用的动态服务发现、配置管理和 AI 管理中心平台。最早围绕两个核心问题构建：应用如何找到服务、应用如何安全地读取和更新配置。进入 3.x 后，Nacos 在这些能力之上扩展了 AI 管理中心，用来管理 Skill、A2A Agent、MCP server、Prompt 等 AI 资源。官网：https://nacos.io/
 
 服务注册与发现流程：
 1. 微服务应用在启动过程中将自身包含的服务名称、主机IP地址、端口号等信息发送至注册中心。
@@ -509,4 +508,3 @@ Spring Cloud建立在Spring Boot之上，每个组件都是以Starter形式提�
 
 ---
 
-<KnowledgeGraph />

@@ -1,22 +1,8 @@
-import { defineCollection, z } from 'astro:content';
-import { glob } from 'astro/loaders';
+import { defineCollection } from 'astro:content';
+import { docsLoader, i18nLoader } from '@astrojs/starlight/loaders';
+import { docsSchema } from '@astrojs/starlight/schema';
 
-const knowledges = defineCollection({
-  loader: glob({ pattern: '**/*.md', base: './src/content/knowledges' }),
-  schema: z.object({
-    title: z.string(),
-    category: z.string(),
-    description: z.string().optional(),
-  }),
-});
-
-const books = defineCollection({
-  loader: glob({ pattern: '**/*.md', base: './src/content/books' }),
-  schema: z.object({
-    title: z.string(),
-    category: z.string().optional(),
-    description: z.string().optional(),
-  }),
-});
-
-export const collections = { knowledges, books };
+export const collections = {
+  docs: defineCollection({ loader: docsLoader(), schema: docsSchema() }),
+  i18n: defineCollection({ loader: i18nLoader() }),
+};

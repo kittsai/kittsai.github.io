@@ -1,7 +1,12 @@
 ---
 title: "Spring AI in Action - 第4章"
 category: Spring AI in Action
+tableOfContents:
+  minHeadingLevel: 1
+  maxHeadingLevel: 5
 ---
+
+
 
 # 第 4 章 与文档对话
 

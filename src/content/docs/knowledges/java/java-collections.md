@@ -2,7 +2,12 @@
 title: Java集合
 category: Java
 description: 从根接口到具体实现的全景梳理：Collection 与 Map 的结构、底层数据结构、线程安全性与扩容机制。
+tableOfContents:
+  minHeadingLevel: 1
+  maxHeadingLevel: 5
 ---
+
+
 
 # Java集合总览
 
@@ -12,13 +17,11 @@ description: 从根接口到具体实现的全景梳理：Collection 与 Map 的
 
 # Collection 单列集合
 
-> [!info] 特点
-> Collection是单值存储的根接口，继承自Iterable接口，表示一组元素的集合。
+> **Collection** 是单值存储的根接口，继承自Iterable接口，表示一组元素的集合。
 
 ## List
 
-> [!tip] 特点
-> 有序，可重复
+> **特点**：有序，可重复
 
 ### ArrayList
 - 数据结构：动态数组。
@@ -45,8 +48,7 @@ description: 从根接口到具体实现的全景梳理：Collection 与 Map 的
 
 ## Set
 
-> [!tip] 特点
-> 无序，不可重复。
+> **特点**：无序，不可重复。
 
 ### HashSet
 - 数据结构：基于HashMap实现，使用HashMap的key作为数据存储，value为不可变的Object对象。
@@ -68,8 +70,7 @@ description: 从根接口到具体实现的全景梳理：Collection 与 Map 的
 
 # Map 双列集合
 
-> [!info] 特点
-> 双列集合的根接口，用于存储键值对。每个键最多映射到一个值，键不允许重复。（通过equals和hashcode判断）。
+> **双列集合**的根接口，用于存储键值对。每个键最多映射到一个值，键不允许重复。（通过 equals 和 hashcode 判断）。，用于存储键值对。每个键最多映射到一个值，键不允许重复。（通过equals和hashcode判断）。
 
 ## HashMap
 - 数据结构：
@@ -290,4 +291,3 @@ JDK1.7中，HashMap采用头插法插入元素，在扩容时会遍历每个桶�
 
 ---
 
-<KnowledgeGraph />

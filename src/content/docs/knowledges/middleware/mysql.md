@@ -2,7 +2,12 @@
 title: MySQL
 category: 中间件
 description: MySQL 核心知识：索引、事务、锁、MVCC 等。
+tableOfContents:
+  minHeadingLevel: 1
+  maxHeadingLevel: 5
 ---
+
+
 
 # MySQL
 
@@ -195,4 +200,3 @@ binlog，叫作归档日志，是Server层逻辑日志，记录SQL或行变化�
 
 ---
 
-<KnowledgeGraph />

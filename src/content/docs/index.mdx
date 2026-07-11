@@ -1,0 +1,33 @@
+---
+title: Kit Docs
+description: 个人知识库与读书笔记
+template: splash
+hero:
+  tagline: Java、中间件、AI 等技术知识整理
+  actions:
+    - text: 开始阅读
+      link: /knowledges/java/spring
+      icon: right-arrow
+    - text: GitHub
+      link: https://github.com/kittsai/kittsai.github.io
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+## 知识笔记
+
+<CardGrid>
+  <Card title="Java" icon="seti:java">
+    - [Spring](/knowledges/java/spring) - 框架核心：IOC、AOP、Bean 生命周期
+    - [Java并发](/knowledges/java/java-concurrency) - 线程、锁、并发工具
+    - [Java集合](/knowledges/java/java-collections) - Collection 与 Map
+    - [JVM](/knowledges/java/jvm) - 内存模型、垃圾回收
+  </Card>
+  <Card title="中间件" icon="puzzle">
+    - [MySQL](/knowledges/middleware/mysql) - 索引、事务、锁、MVCC
+    - [Redis](/knowledges/middleware/redis) - 数据结构、持久化、集群
+  </Card>
+</CardGrid>
+

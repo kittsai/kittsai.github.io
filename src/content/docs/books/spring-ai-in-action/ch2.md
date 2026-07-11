@@ -1,7 +1,12 @@
 ---
 title: "Spring AI in Action - 第2章"
 category: Spring AI in Action
+tableOfContents:
+  minHeadingLevel: 1
+  maxHeadingLevel: 5
 ---
+
+
 
 # 评估生成的响应
 

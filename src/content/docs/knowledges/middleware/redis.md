@@ -2,7 +2,12 @@
 title: Redis
 category: 中间件
 description: Redis 核心知识：数据结构、持久化、集群、缓存策略等。
+tableOfContents:
+  minHeadingLevel: 1
+  maxHeadingLevel: 5
 ---
+
+
 
 # Redis是什么？
 
@@ -162,4 +167,3 @@ Redis 事务提供了一种**一次性、顺序性、排他性**地执行多个�
 
 ---
 
-<KnowledgeGraph />

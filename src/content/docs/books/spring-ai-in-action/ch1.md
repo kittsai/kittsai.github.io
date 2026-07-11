@@ -1,7 +1,12 @@
 ---
 title: "Spring AI in Action - 第1章"
 category: Spring AI in Action
+tableOfContents:
+  minHeadingLevel: 1
+  maxHeadingLevel: 5
 ---
+
+
 
 # Spring AI 入门
 

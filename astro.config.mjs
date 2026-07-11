@@ -8,6 +8,9 @@ export default defineConfig({
     starlight({
       title: 'Kit Docs',
       customCss: ['./src/styles/custom.css'],
+      components: {
+        ThemeSelect: './src/components/ThemeSelect.astro',
+      },
       sidebar: [
         {
           label: '知识笔记',
@@ -26,20 +29,6 @@ export default defineConfig({
               items: [
                 'knowledges/middleware/mysql',
                 'knowledges/middleware/redis',
-              ],
-            },
-          ],
-        },
-        {
-          label: '读书记录',
-          items: [
-            {
-              label: 'Spring AI in Action',
-              items: [
-                'books/spring-ai-in-action/ch1',
-                'books/spring-ai-in-action/ch2',
-                'books/spring-ai-in-action/ch3',
-                'books/spring-ai-in-action/ch4',
               ],
             },
           ],

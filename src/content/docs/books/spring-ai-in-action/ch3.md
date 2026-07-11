@@ -1,7 +1,12 @@
 ---
 title: "Spring AI in Action - 第3章"
 category: Spring AI in Action
+tableOfContents:
+  minHeadingLevel: 1
+  maxHeadingLevel: 5
 ---
+
+
 
 # 第3章 向生成提交提示
 
