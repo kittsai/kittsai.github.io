@@ -25,10 +25,16 @@ export default defineConfig({
               ],
             },
             {
+              label: '数据库',
+              items: [
+                'knowledges/database/mysql',
+                'knowledges/database/redis',
+              ],
+            },
+            {
               label: '中间件',
               items: [
-                'knowledges/middleware/mysql',
-                'knowledges/middleware/redis',
+                'knowledges/middleware/elastic-search',
               ],
             },
           ],
