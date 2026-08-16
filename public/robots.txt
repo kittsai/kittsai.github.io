@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://kittsai.github.io/sitemap-index.xml

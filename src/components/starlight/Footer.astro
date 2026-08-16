@@ -1,0 +1,6 @@
+---
+import type { Props } from '@astrojs/starlight/props';
+import Pagination from '@astrojs/starlight/components/Pagination.astro';
+---
+<footer class="doc-footer"><div class="rule"></div><div class="footer-label"><span>K.</span><p>这篇笔记仍会继续生长。<br/>发现错误，欢迎在 GitHub 提出。</p><a href="/knowledge">全部笔记 ↗</a></div><Pagination {...Astro.props} /></footer>
+<style>.doc-footer{margin-top:5rem}.rule{height:1px;margin-bottom:2rem;background:var(--color-border)}.footer-label{display:grid;grid-template-columns:auto 1fr auto;gap:1.2rem;align-items:center;margin-bottom:2rem}.footer-label span{color:var(--color-accent-strong);font:600 1.8rem var(--font-mono)}.footer-label p{margin:0;color:var(--color-muted);font-size:.75rem;line-height:1.6}.footer-label a{color:var(--color-muted);font-size:.72rem;text-decoration:none}.footer-label a:hover{color:var(--color-accent-strong)}@media(max-width:35rem){.footer-label{grid-template-columns:auto 1fr}.footer-label a{display:none}}</style>

@@ -3,13 +3,12 @@ title: Spring
 category: Java
 description: Spring 框架核心：IOC、AOP、Bean 生命周期、事务管理等。
 tableOfContents:
-  minHeadingLevel: 1
+  minHeadingLevel: 2
   maxHeadingLevel: 5
 ---
 
 
 
-# Spring
 
 Spring是一个轻量级的Java开发框架，目标是让Java开发者能专注于开发逻辑。底层有两个核心特性：依赖注入（IOC）、面向切面编程（AOP）。
 
@@ -182,7 +181,7 @@ flowchart TD
 ![Spring Bean生命周期](/images/Spring-Bean生命周期.png)
 
 
-# 面向切面编程
+## 面向切面编程
 
 在OOP中，通常按业务划分出不同的类，但总有一些公共逻辑散落在各个类中。比如：日志记录、事务管理等。
 这些逻辑叫做**横切关注点**。横切逻辑与业务代码紧密耦合，会导致代码重复、难以维护等问题。AOP通过将这些横切逻辑模块化为独立的**切面**，在不修改业务代码的情况下，将横切逻辑**动态织入**到指定的连接点，保持业务代码的纯粹。
@@ -363,11 +362,11 @@ public class UserService {
 - 失效原因：错误使用事务传播行为，导致事务丢失。
 
 
-# Spring MVC
+## Spring MVC
 
 
 
-# Spring Boot
+## Spring Boot
 
 Spring Boot将Spring的**可配置性**固化为**约定**，通过自动装配、起步依赖、内嵌容器和配置文件等内容，让开发者更快速的搭建应用。
 
@@ -474,7 +473,7 @@ com.example.greeter.autoconfigure.GreeterAutoConfiguration
 
 
 
-# Spring Cloud
+## Spring Cloud
 
 单体应用发展到一定规模后，会面临：单点故障、扩展困难、协同开发难等问题，Spring Cloud提供了一套微服务架构的工具集，是分布式微服务架构的一站式解决方案，解决分布式中如下常见问题：
 - 服务注册与发现：Nacos
@@ -502,7 +501,7 @@ Spring Cloud建立在Spring Boot之上，每个组件都是以Starter形式提�
 
 
 
-# FAQ
+## FAQ
 
 ## 为什么构造器注入无法解决循环依赖，Setter注入和注解注入却可以？
 

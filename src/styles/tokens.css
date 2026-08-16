@@ -1,0 +1,23 @@
+:root {
+  color-scheme: light;
+  --color-bg: #f4efe6;
+  --color-surface: #fbfaf6;
+  --color-surface-raised: #ebe7de;
+  --color-text: #191a17;
+  --color-muted: #6e6c65;
+  --color-soft: #96928a;
+  --color-accent: #7b9a68;
+  --color-accent-strong: #526f43;
+  --color-border: rgba(46, 42, 34, 0.13);
+  --color-border-strong: rgba(46, 42, 34, 0.23);
+  --color-paper-raised: #f8f6f0;
+  --color-ink: #191a17;
+  --color-ink-muted: #6e6c65;
+  --color-rule: rgba(46, 42, 34, 0.15);
+  --font-sans: Inter, 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+  --font-mono: 'Geist Mono', 'PingFang SC', 'SFMono-Regular', Consolas, monospace;
+  --font-display: 'Instrument Serif', 'Noto Serif SC', 'Songti SC', serif;
+  --font-reading: 'Noto Serif SC', 'Songti SC', serif;
+  --shell: 1420px;
+  --radius-md: 12px;
+}

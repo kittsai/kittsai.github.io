@@ -1,0 +1,14 @@
+---
+import { getCollection, render } from 'astro:content';
+import ContentLayout from '../../layouts/ContentLayout.astro';
+export async function getStaticPaths() {
+  const posts = await getCollection('writing', ({ data }) => !data.draft);
+  return posts.map((post) => ({ params: { id: post.id }, props: { post } }));
+}
+const { post } = Astro.props;
+const { Content } = await render(post);
+const textLength = (post.body ?? '').replace(/\s+/g, '').length;
+const readingMinutes = Math.max(1, Math.ceil(textLength / 500));
+const meta = `${post.data.publishedAt.toLocaleDateString('zh-CN')} · ${readingMinutes} 分钟阅读 · ${post.data.category} · ${post.data.tags.join(' / ')}`;
+---
+<ContentLayout title={post.data.title} description={post.data.description} eyebrow="Blog" meta={meta}><Content /></ContentLayout>

@@ -1,0 +1,18 @@
+---
+import type { Props } from '@astrojs/starlight/props';
+const { entry } = Astro.props;
+const section = entry.slug.split('/')[1] ?? '笔记';
+const category = `NOTE · ${section.toUpperCase()}`;
+const description = entry.data.description;
+---
+<header class="doc-hero">
+  <div class="meta"><span>{category}</span><i></i><span>持续更新</span></div>
+  <h1 id="_top">{entry.data.title}</h1>
+  {description && <p>{description}</p>}
+  <div class="signals"><span>结构化笔记</span><i></i><span>#{entry.slug.split('/').at(-1)}</span></div>
+</header>
+<style>
+  .doc-hero{padding:6rem 0 4.5rem;border-bottom:1px solid var(--color-border);text-align:center}.meta,.signals{display:flex;justify-content:center;align-items:center;gap:.7rem;color:var(--color-accent-strong);font:500 .62rem var(--font-mono);letter-spacing:.1em;text-transform:uppercase}.meta i,.signals i{width:3px;height:3px;background:currentColor;border-radius:50%}h1{margin:1.5rem auto 1.25rem;max-width:18ch;font-family:var(--font-reading);font-size:clamp(3.6rem,6.5vw,6rem);line-height:1.02;letter-spacing:-.055em;font-weight:600;color:var(--color-text);text-wrap:balance}p{max-width:42rem;margin:0 auto;color:var(--color-muted);font-size:1.08rem;line-height:1.75;text-wrap:balance}.signals{margin-top:2rem;color:var(--color-soft)}@media(max-width:50rem){.doc-hero{padding:3.5rem 0 3rem;text-align:left}.meta,.signals{justify-content:flex-start}h1{margin-inline:0;font-size:clamp(3rem,15vw,4.5rem);text-wrap:wrap}p{margin-inline:0;text-wrap:wrap}.signals{display:none}}
+  .doc-hero{padding:5.5rem 0 4rem}
+  h1{font-size:clamp(3.5rem,6vw,5.25rem);line-height:1.04;letter-spacing:-.045em}
+</style>

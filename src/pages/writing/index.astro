@@ -1,0 +1,10 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+const posts=(await getCollection('writing',({data})=>!data.draft)).sort((a,b)=>b.data.publishedAt.valueOf()-a.data.publishedAt.valueOf());
+---
+<BaseLayout title="博客 — Kittsai" description="关于工程实践、技术判断与持续构建的文章。" class="light-page">
+  <section class="page-hero visual-hero writing-hero"><div class="shell"><p class="eyebrow">Blog</p><h1>一些思考与记录</h1><p>正式文章、有时间维度，也保留当时的判断与上下文。</p></div></section>
+  <section class="content-section"><div class="shell list">{posts.map(post=><a href={`/writing/${post.id}`}><time>{post.data.publishedAt.toLocaleDateString('zh-CN')}</time><div><span>{post.data.category}</span><h2>{post.data.title}</h2><p>{post.data.description}</p><small>{post.data.tags.join(' · ')}</small></div><b>↗</b></a>)}</div></section>
+</BaseLayout>
+<style>.list{width:min(980px,calc(100% - 48px));margin-inline:auto;border-top:1px solid var(--color-rule)}.list>a{display:grid;grid-template-columns:130px 1fr 30px;gap:30px;padding:34px 8px;border-bottom:1px solid var(--color-rule);transition:.2s}.list>a:hover{padding-inline:22px;background:var(--color-paper-raised)}time,.list span,.list small{color:var(--color-ink-muted);font:10px var(--font-mono);text-transform:uppercase;letter-spacing:.06em}.list h2{margin:10px 0;font-size:27px;font-weight:500}.list p{margin:0 0 14px;color:var(--color-ink-muted);line-height:1.6}.list b{font-weight:400;font-size:20px}@media(max-width:650px){.list{width:min(100% - 30px,980px)}.list>a{grid-template-columns:1fr 22px;gap:10px}time{grid-column:1/-1}}</style>

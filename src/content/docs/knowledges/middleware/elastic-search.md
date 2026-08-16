@@ -3,17 +3,17 @@ title: ElasticSearch
 category: 中间件
 description: ES 核心概念、倒排索引、数据写入与检索流程、深分页解决方案。
 tableOfContents:
-  minHeadingLevel: 1
+  minHeadingLevel: 2
   maxHeadingLevel: 5
 ---
 
 
 
-# ES介绍
+## ES介绍
 
 ES是一个建立在Apache Lucene之上的分布式、Restful风格的搜索和数据分析引擎。
 
-# 基本概念
+## 基本概念
 
 **集群（Cluster）**：由多台服务器组成，共同存储全部数据，对外提供统一入口。
 
@@ -33,7 +33,7 @@ ES是一个建立在Apache Lucene之上的分布式、Restful风格的搜索和�
 
 **副本（Replica）**：每个分片可以有一个或多个副本，用于容灾和提高查询性能。
 
-# 倒排索引
+## 倒排索引
 
 基本思想：从文档找词 转变为 从词找文档。倒排索引建立的是 词项 到 文档ID 的映射。
 - 逻辑层面：ES发起搜索请求时，面对的是一个倒排索引。
@@ -70,7 +70,7 @@ Doc2 → [ "fast", "search", "with", "elasticserch" ]
 
 查询路径：从Term Index快速定位到Term Dictionary中的词项，再通过指针拿到Posting List。
 
-## Term Dictionary
+### Term Dictionary
 
 Term Dictionary，词项词典，是全量词项的有序集合。它将索引中的所有文档的所有词项，经排序后形成唯一词项列表。
 
@@ -79,7 +79,7 @@ Term Dictionary，词项词典，是全量词项的有序集合。它将索引�
 - 指向该词项Posting List的文件偏移指针
 - 文档频率
 
-## Term Index
+### Term Index
 
 Term Index，词项索引，是词典的目录与内存核心。词典存储在磁盘上，直接二分查找会产生大量随机IO。所以需要一种极小内存占用的结构，快速定位词典中某个前缀的位置。
 
@@ -89,7 +89,7 @@ Term Index，词项索引，是词典的目录与内存核心。词典存储在�
 
 Term Index常驻堆内存，是整个倒排索引查询速度的基石。它让Lucene在万亿级别词项规模下仍能极速定位。
 
-## Posting List
+### Posting List
 
 Posting List，倒排列表，是词到文档的映射，并承载评分信息。
 
@@ -100,7 +100,7 @@ Posting List，倒排列表，是词到文档的映射，并承载评分信息�
 - 偏移量Offsets：词的起止字符位置
 - Payloads：用户自定义的负载信息
 
-## 倒排索引检索流程
+### 倒排索引检索流程
 
 以搜索 "elasticsearch fast" 为例（分析后为两个词项）：
 1. **Term Index 查找**
@@ -125,7 +125,7 @@ Posting List，倒排列表，是词到文档的映射，并承载评分信息�
 | 5. Query Phase 合并 | 协调节点            | 合并各分片结果，全局 Top-N   |                             |
 | 6. Fetch Phase    | 协调 → 数据节点       | 根据 ID 列表获取完整文档     | 不再需要 Posting List           |
 
-# 数据写入流程
+## 数据写入流程
 
 1. 客户端向某个节点发送POST请求。
 2. 接收到请求的节点自动成为**协调节点**，根据路由公式计算目标分片：`shard = hash(_routing) % num_primary_shards`（`_routing`为文档id）。找到该分片的主分片所在节点，将请求转发过去。
@@ -148,7 +148,7 @@ Posting List，倒排列表，是词到文档的映射，并承载评分信息�
 
 ![ES-数据写入流程](/images/ES-数据写入流程.png)
 
-# 数据检索流程
+## 数据检索流程
 
 1. 客户端发起请求：向某个节点发起GET请求。
 2. **Query Phase，查询阶段**：
@@ -165,7 +165,7 @@ Posting List，倒排列表，是词到文档的映射，并承载评分信息�
 
 
 
-# 深分页问题
+## 深分页问题
 
 为什么深分页慢？
 - 网络开销大：每个分片都要传输10000条数据，分片越多，传输量成倍增长。
@@ -173,7 +173,7 @@ Posting List，倒排列表，是词到文档的映射，并承载评分信息�
 - 重复计算：每次翻页都要从头查一遍，无法利用之前的计算结果。
 - 硬性限制：ES默认`max_result_window=10000`，from+size 超过这个值直接报错。
 
-### 方案一：Search After（推荐使用）
+#### 方案一：Search After（推荐使用）
 - 适用场景：无限翻页、瀑布流、实时数据。
 - 核心思想：根据上一页最后一条的排序值作为游标起点，进行后续数据查询。search after支持查询多个字段。
 - 局限性：
@@ -205,14 +205,14 @@ GET /products/_search
 }
 ```
 
-### 方案二：Scroll API（不推荐使用）
+#### 方案二：Scroll API（不推荐使用）
 - 适用场景：一次性导出海量数据、批量处理。
 - 核心思想：生成一个数据快照，然后像游标一样分批遍历。
 - 局限性：
 	- 不实时：拿到的数据是快照数据。
 	- 官方不推荐。
 
-### 方案三：Point In Time(PIT) + Search After （官方推荐）
+#### 方案三：Point In Time(PIT) + Search After （官方推荐）
 - 适用场景：一致性视图+无限翻页
 - 核心思想：PIT创建一个轻量级时间点视图，配合Search After实现一致性游标翻页。
 ```bash
@@ -242,5 +242,5 @@ DELETE /_pit
 }
 ```
 
-### 方案四：限制深度分页（业务折衷）
+#### 方案四：限制深度分页（业务折衷）
 - 适用场景：B端后台管理、搜索引擎前端。

@@ -3,13 +3,12 @@ title: Java并发
 category: Java
 description: Java 并发编程核心知识：线程、锁、并发工具、线程池等。
 tableOfContents:
-  minHeadingLevel: 1
+  minHeadingLevel: 2
   maxHeadingLevel: 5
 ---
 
 
 
-# Java并发
 
 ![Java并发总览](/images/Java并发总览.png)
 
@@ -17,13 +16,13 @@ tableOfContents:
 - 可见性：一个线程对共享变量的修改，其他线程能立刻看到。
 - 有序性：程序执行的顺序，按照代码的书写顺序来。
 
-# Java内存模型
+## Java内存模型
 
 > **JMM** 主要解决可见性、有序性，基本保证原子性操作。
 
 ![JMM总览](/images/JMM总览.png)
 
-## JMM是什么
+### JMM是什么
 Java内存模型（Java Memory Model），简称JMM，是一套抽象的规范。定义了多线程环境中共享变量的访问规则。
 JMM将内存划分为主内存和工作内存。
 - 主内存：所有线程共享，存放变量的正式值。
@@ -31,12 +30,12 @@ JMM将内存划分为主内存和工作内存。
 
 ![JMM内存模型](/images/JMM内存模型.png)
 
-## JMM解决什么问题
+### JMM解决什么问题
 JMM解决可见性、有序性两个问题：
 - 可见性问题：CPU多级缓存与缓冲区。
 - 有序性问题：编译器和处理器为了性能会进行指令重排序。
 
-### 解决可见性
+#### 解决可见性
 **建立"强制刷新/失效"协议**。JMM规定，线程对变量的操作不能一直停留在工作内存里，必须在特定时刻同步到主内存。
 - volatile：
 	- 写操作：新值必须立即刷新到主内存。
@@ -47,15 +46,15 @@ JMM解决可见性、有序性两个问题：
 - final：
 	- 只要构造期间没有让this引用逸出，构造完成后final字段的值对其他线程立刻可见，无需额外同步。
 
-### 解决有序性
+#### 解决有序性
 **定义Happens-Before原则**。规定哪些操作不可重排序。
 
-### 保证基本的原子性
+#### 保证基本的原子性
 JMM只保证基本读写操作的原子性，除了long、double外，其他变量的单次读写操作都是原子的。复合操作必须通过锁或其他方式保证原子性。
 
-## JMM怎么实现
+### JMM怎么实现
 JMM的规范是抽象的， 需要靠**JIT编译器插入内存屏障**、**处理器提供的硬件指令**来落地。
-### 内存屏障
+#### 内存屏障
 JIT在编译字节码时，会在关键位置插入四种内存屏障指令。
 
 | 屏障类型           | 作用                             |
@@ -69,13 +68,13 @@ JIT在编译字节码时，会在关键位置插入四种内存屏障指令。
 	- 读操作：读后插入 LoadLoad 和 LoadStore。
 - synchronized：使用字节码指令`monitorenter` 和 `monitorexit`触发内存屏障，保证临界区内的读写在锁释放后可见。
 - final：在构造方法末尾插入 StoreStore屏障，保证final字段赋值不会与对象引用赋值被重排序。
-### 硬件指令
+#### 硬件指令
 内存屏障主要通过CPU指令lock xxx实现。
 - 强制将当前CPU缓存刷新到主内存。
 - 通过MESI缓存一致性协议，将其他CPU缓存中对应数据失效。
 - 阻止处理器对lock前后的指令进行重排序。
 
-# volatile
+## volatile
 
 > **volatile** 最轻量的同步机制，通过写前 StoreStore + 写后 StoreLoad、读后 LoadLoad + LoadStore 的内存屏障策略，保证多线程环境下的可见性和有序性，但不保证原子性。
 
@@ -86,7 +85,7 @@ JIT在编译字节码时，会在关键位置插入四种内存屏障指令。
 	- 写入：写前插入 StoreStore，写后插入StoreLoad。
 	- 读取：读后插入 LoadLoad、LoadStore。
 
-# synchronized
+## synchronized
 
 > **synchronized** 较重的同步机制，保证原子性、可见性、有序性。
 
@@ -111,7 +110,7 @@ synchronized用法：
 - 轻量级锁：并发情况下，通过CAS自旋来获取锁，获取成功后将对象头的Mark Word修改为指向当前线程在栈中创建的Lock Record。
 - 重量级锁：自旋失败或竞争激烈时，膨胀为重量级锁。JVM创建ObjectMonitor，未获取到锁的线程进入等待队列，被操作系统挂起，直到锁释放后被唤醒。
 
-# final
+## final
 
 > **final** 解决不可变对象的安全发布问题。
 
@@ -121,7 +120,7 @@ synchronized用法：
 
 PS：只有包含final字段的构造方法，才会插入StoreStore屏障。
 
-# AQS
+## AQS
 AQS，全称AbstractQueuedSynchronizer，是一个抽象的、基于FIFO等待队列的、用一个volatile ine表示同步状态的框架。
 
 AQS解决的问题是：把线程如何安全地排队、阻塞、唤醒等这些复杂且容易出错的操作封装起来，让开发者只需关心何时加锁、何时释放的上层逻辑。
@@ -155,7 +154,7 @@ AQS的两种获取锁模式：
 
 ReentrantLock、Semaphore、CountDownLatch等都是基于AQS实现的。
 
-## ReentrantLock
+### ReentrantLock
 
 > **锁模式**：独占模式
 
@@ -176,7 +175,7 @@ ReentrantLock是一个可重入的互斥锁，内部有一个继承自AQS的`Syn
 - 公平锁：先检查队列里有没有线程在等，有就乖乖排队。
 - 非公平锁：一上来就CAS抢锁，不看队列里有没有线程排队。
 
-## Semaphore
+### Semaphore
 
 > **锁模式**：共享模式
 
@@ -194,7 +193,7 @@ Semaphore是信号量，将state表示为**剩余许可证数量**，来控制�
 
 若剩余许可证数量大于0，AQS会自动唤醒下一个等待的线程，直到许可证为0。
 
-## CountDownLatch
+### CountDownLatch
 
 > **锁模式**：共享模式
 
@@ -214,7 +213,7 @@ Semaphore和CountDownLatch的关键区别：
 - Semaphore：state可复用。
 - CountDownLatch：state是一次性的，当state等于0，所有等待线程被唤醒，门闩永久打开。
 
-## AQS实现比对
+### AQS实现比对
 | 特性           | ReentrantLock          | Semaphore               | CountDownLatch            |
 | ------------ | ---------------------- | ----------------------- | ------------------------- |
 | **模式**       | 独占                     | 共享                      | 共享                        |
@@ -226,7 +225,7 @@ Semaphore和CountDownLatch的关键区别：
 | **复用性**      | 可复用                    | 可复用                     | 一次性                       |
 | **唤醒传播**     | 无（独占）                  | 有（共享）                   | 有（共享，到 0 时）               |
 
-# ThreadLocal
+## ThreadLocal
 ThreadLocal是一个线程级别的隔离工具。每个线程有一份独立的存储，可以避免线程间的数据共享和竞争。
 
 核心原理：每个Thread对象有一个ThreadLocalMap。ThreadLocalMap是一个哈希表，key为ThreadLocal对象（弱引用），value为需要存储的值。
@@ -234,7 +233,7 @@ ThreadLocal是一个线程级别的隔离工具。每个线程有一份独立的
 key为什么设计为弱引用？
 为了在ThreadLocal对象失去外部引用后，key可以被GC回收。这样ThreadLocalMap里的key为null，但value还被强引用。所以必须通过remove来清理，防止内存泄漏。
 
-# 线程池
+## 线程池
 
 线程池是一种**池化资源技术**，它预先创建一定数量的线程，放入"池子"中。当有任务需要执行时，从池子里取一个线程来执行，任务执行完成后线程不会销毁，而是返回池子等待下一个任务。
 
@@ -243,7 +242,7 @@ key为什么设计为弱引用？
 - 提高响应速度：任务到达时，无需等待线程创建就可以立即执行。
 - 提高线程的可管理性：可以统一分配、调优和监控线程的数量和状态。
 
-## ThreadPoolExecutor
+### ThreadPoolExecutor
 ```java
 public ThreadPoolExecutor(int corePoolSize,
                           int maximumPoolSize,
@@ -262,7 +261,7 @@ ThreadPoolExecutor是线程池的核心实现类，提供了以下参数：
 - threadFactory：线程工厂，可以自定义线程名称。
 - handler：拒绝策略，当队列满且达到最大线程数时，拒绝线程的策略。
 
-## 线程池执行流程
+### 线程池执行流程
 - 若 **当前线程数 < 核心线程数**，则创建核心线程执行。
 - 若 **当前线程数 = 核心线程数**，且队列未满，则将线程放入等待队列。
 - 若 **队列已满，但当前线程数 < 最大线程数**，则创建非核心线程执行。
@@ -270,7 +269,7 @@ ThreadPoolExecutor是线程池的核心实现类，提供了以下参数：
 
 核心线程数是常驻线程，最大线程数是临时的救急线程。
 
-## Executors
+### Executors
 **Executors**是JUC包中的一个线程池工厂类，用于快速创建**ExecutorService**实例。
 
 Executors默认提供了几个工厂方法：
@@ -304,7 +303,7 @@ Executors默认提供了几个工厂方法：
 - OOM：等待队列无限大，可能发生OOM。
 - 资源耗尽：最大线程数无限大，可能导致资源耗尽。
 
-## 等待队列
+### 等待队列
 
 线程池使用的队列全部来自 java.util.concurrent.BlockingQueue接口的实现：
 - ArrayBlockingQueue：数组阻塞队列，有界，必须指定容量。
@@ -318,7 +317,7 @@ ArrayBlockingQueue和LinkedBlockingQueue的区别：
 - 吞吐量：ArrayBlockingQueue使用单锁，LinkedBlockingQueue：双锁，吞吐量高。
 - 灵活性：对任务量变化较大的应用场景，LinkedBlockingQueue更灵活。
 
-## 拒绝策略
+### 拒绝策略
 当队列已满且达到最大线程数时，触发拒绝策略。
 
 拒绝策略：
@@ -327,12 +326,12 @@ ArrayBlockingQueue和LinkedBlockingQueue的区别：
 - DiscardPolicy：直接丢弃新任务，不会抛出异常。
 - DiscardOldestPolicy：丢弃队列中最老的任务。
 
-## 线程池配置最佳实践
+### 线程池配置最佳实践
 
 - CPU密集型任务：以计算为主，线程数 = CPU核心数 + 1。
 - IO密集型任务：大量阻塞等待，线程数 = CPU核心数 * 2，或更精准的计算方式：CPU核心数 * （1+平均等待时间/平均计算时间）。
 
-# 线程生命周期
+## 线程生命周期
 - NEW：线程刚创建，尚未启动。
 - RUNNABLE：可运行状态（包含等待调度和已抢占到时间片两种情况）。
 - BLOCKED：获取锁被阻塞，仅限synchronized锁。
@@ -342,12 +341,12 @@ ArrayBlockingQueue和LinkedBlockingQueue的区别：
 
 ![线程生命周期](/images/线程生命周期.png)
 
-## 原子类
+### 原子类
 
 
-# FAQ
+## FAQ
 
-## run方法和start方法的区别？
+### run方法和start方法的区别？
 
 ---
 

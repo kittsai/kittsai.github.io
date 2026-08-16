@@ -1,0 +1,14 @@
+---
+import BrandNavigation from './BrandNavigation.astro';
+const { pathname } = Astro.url;
+---
+<header class="site-header">
+  <div class="shell header-inner">
+    <BrandNavigation pathname={pathname} />
+  </div>
+</header>
+<style>
+  .site-header { position: sticky; top: 0; z-index: 20; border-bottom: 1px solid var(--color-border); background: rgba(244,239,230,.9); backdrop-filter: blur(16px); }
+  .header-inner { height: 72px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; }
+  @media (max-width: 820px) { .header-inner { grid-template-columns: 1fr auto; } }
+</style>

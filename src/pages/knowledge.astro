@@ -1,0 +1,59 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const order = [
+  'knowledges/java/java-collections',
+  'knowledges/java/java-concurrency',
+  'knowledges/java/jvm',
+  'knowledges/java/spring',
+  'knowledges/database/mysql',
+  'knowledges/database/redis',
+  'knowledges/middleware/elastic-search',
+];
+const labels = { java: 'Java', database: '数据库', middleware: '中间件' } as const;
+const notes = (await getCollection('docs'))
+  .filter((entry) => entry.id.startsWith('knowledges/'))
+  .sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
+const groups = Object.entries(labels).map(([key, label]) => ({
+  key,
+  label,
+  notes: notes.filter((entry) => entry.id.startsWith(`knowledges/${key}/`)),
+}));
+---
+<BaseLayout title="全部笔记 — Kittsai" description="Kittsai 关于 Java、数据库与中间件的结构化技术笔记。" class="light-page">
+  <section class="page-hero notes-hero">
+    <div class="shell">
+      <p class="eyebrow">All notes</p>
+      <h1>全部笔记</h1>
+      <p>{notes.length} 篇持续更新的结构化技术笔记，用于查询，也用于连接理解。</p>
+    </div>
+  </section>
+  <section class="notes-index">
+    <div class="shell notes-groups">
+      {groups.map((group, groupIndex) => (
+        <section class="note-group" aria-labelledby={`group-${group.key}`}>
+          <header><span>{String(groupIndex + 1).padStart(2, '0')}</span><h2 id={`group-${group.key}`}>{group.label}</h2><small>{String(group.notes.length).padStart(2, '0')} NOTES</small></header>
+          <div class="archive-list">
+            {group.notes.map((note, index) => (
+              <a href={`/${note.id}`}>
+                <span>{String(index + 1).padStart(2, '0')}</span>
+                <div><h3>{note.data.title}</h3><p>{note.data.description}</p></div>
+                <b aria-hidden="true">→</b>
+              </a>
+            ))}
+          </div>
+        </section>
+      ))}
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .notes-hero{padding-block:96px 72px}.notes-hero h1{font-size:clamp(54px,7vw,86px)}
+  .notes-index{padding:78px 0 120px}.notes-groups{width:min(980px,calc(100% - 48px))}.note-group+ .note-group{margin-top:78px}
+  .note-group>header{display:grid;grid-template-columns:52px 1fr auto;align-items:baseline;padding-bottom:18px;border-bottom:1px solid var(--color-border)}
+  .note-group>header span,.note-group>header small,.archive-list>a>span{color:var(--color-soft);font:500 10px var(--font-mono);letter-spacing:.12em}.note-group h2{margin:0;font-family:var(--font-display);font-size:36px;font-weight:400}.note-group>header small{font-size:9px}
+  .archive-list>a{display:grid;grid-template-columns:52px 1fr 30px;gap:0;align-items:center;padding:30px 0;border-bottom:1px solid var(--color-border);transition:padding .2s ease,background .2s ease}.archive-list>a:hover{padding-inline:12px;background:rgba(251,250,246,.42)}.archive-list h3{margin:0 0 7px;font-family:var(--font-display);font-size:28px;font-weight:400}.archive-list p{margin:0;color:var(--color-muted);font-size:13px;line-height:1.6}.archive-list b{font-family:var(--font-display);font-size:24px;font-weight:400;transition:transform .2s}.archive-list>a:hover b{transform:translateX(4px)}
+  @media(max-width:640px){.notes-hero{padding-block:70px 52px}.notes-index{padding:56px 0 86px}.notes-groups{width:min(100% - 30px,980px)}.note-group+ .note-group{margin-top:58px}.note-group>header{grid-template-columns:36px 1fr auto}.note-group h2{font-size:30px}.archive-list>a{grid-template-columns:36px 1fr 20px;padding:25px 0}.archive-list h3{font-size:24px}.archive-list p{font-size:12px}}
+</style>

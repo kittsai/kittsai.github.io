@@ -3,27 +3,27 @@ title: Java集合
 category: Java
 description: 从根接口到具体实现的全景梳理：Collection 与 Map 的结构、底层数据结构、线程安全性与扩容机制。
 tableOfContents:
-  minHeadingLevel: 1
+  minHeadingLevel: 2
   maxHeadingLevel: 5
 ---
 
 
 
-# Java集合总览
+## Java集合总览
 
 ![Java集合总览](/images/Java集合总览.png)
 
 ---
 
-# Collection 单列集合
+## Collection 单列集合
 
 > **Collection** 是单值存储的根接口，继承自Iterable接口，表示一组元素的集合。
 
-## List
+### List
 
 > **特点**：有序，可重复
 
-### ArrayList
+#### ArrayList
 - 数据结构：动态数组。
 - 特点：
 	- 查询快：数组在内存中是连续的，可以通过索引下标计算出内存地址，所以查询快，时间复杂度为：O(1)。
@@ -34,7 +34,7 @@ tableOfContents:
 - 是否线程安全：否。
 - 适用场景：适合查询多、写入少的场景。
 
-### LinkedList
+#### LinkedList
 - 数据结构：双向链表。
 - 特点：
 	- 写入快：通过节点的前驱和后继指针关联节点，无需移动其他元素。时间复杂度：O(1)。
@@ -42,37 +42,37 @@ tableOfContents:
 - 是否线程安全：否。
 - 适用场景：适合操作元素多、查询少的场景。
 
-### Vector
+#### Vector
 - 数据结构：动态数组。
 - 是否线程安全：是。对所有方法增加synchronized关键字，实现线程安全。
 
-## Set
+### Set
 
 > **特点**：无序，不可重复。
 
-### HashSet
+#### HashSet
 - 数据结构：基于HashMap实现，使用HashMap的key作为数据存储，value为不可变的Object对象。
 - 是否线程安全：否。
 
-### LinkedHashSet
+#### LinkedHashSet
 - 数据结构：继承于HashSet，使用HashSet中的特殊构造方法，基于LinkedHashMap实现。
 - 是否线程安全：否。
 
-### TreeSet
+#### TreeSet
 - 数据结构：基于TreeMap实现，底层实现为红黑树。
 - 特点：有序，唯一。
 - 是否线程安全：否。
 
-## Queue
+### Queue
 - 数据结构：队列。
 - 特点：通常遵循FIFO（先进先出）原则，但也有支持按优先级排序或双端操作的变体。
 - 是否线程安全：大部分非线程安全，但也有线程安全的队列，如：BlockingQueue。
 
-# Map 双列集合
+## Map 双列集合
 
 > **双列集合**的根接口，用于存储键值对。每个键最多映射到一个值，键不允许重复。（通过 equals 和 hashcode 判断）。，用于存储键值对。每个键最多映射到一个值，键不允许重复。（通过equals和hashcode判断）。
 
-## HashMap
+### HashMap
 - 数据结构：
 	- JDK1.7：数组+链表，时间复杂度：O(n)。
 	- JDK1.8：数据+链表+红黑树，时间复杂度：O(logn)。
@@ -93,17 +93,17 @@ tableOfContents:
     - 重新计算索引：扩容时会触发哈希重算，元素的位置为 原桶位置 或 原桶位置+原桶容量。因为HashMap容量值为2次幂，计算桶位置是通过 hash & oldCapacity。如果元素的hash值高位为1，则位置变化为原桶位置+原桶容量。如果元素的hash值高位为0，则位置不变化。
 - 是否线程安全：否。
 
-## LinkedHashMap
+### LinkedHashMap
 
 - 数据结构：数组+双向链表+红黑树。基于HashMap实现，增加了双向链表。
 - 是否线程安全：否。
 
-## TreeMap
+### TreeMap
 - 数据结构：红黑树。
 - 特点：有序。
 - 是否线程安全：否。
 
-## ConcurrentHashMap
+### ConcurrentHashMap
 - 数据结构：
 	- JDK1.7：Segment数组 + HashEntry链表。
 	- JDK1.8：Node数组+链表+红黑树。
@@ -197,9 +197,9 @@ ConcurrentHashMap
 ```
 
 
-# FAQ
+## FAQ
 
-## 普通数据和ArrayList的区别？
+### 普通数据和ArrayList的区别？
 - 数组容量：
 	- 普通数组：创建后数组长度固定。
 	- ArrayList：长度可变。
@@ -210,7 +210,7 @@ ConcurrentHashMap
 	- 普通数组：不支持。
 	- ArrayList：支持。
 
-## ArrayList和LinkedList的区别？
+### ArrayList和LinkedList的区别？
 - 数据结构：
 	- ArrayList：动态数组。
 	- LinkedList：双向链表。
@@ -222,7 +222,7 @@ ConcurrentHashMap
 	- LinkedList：O(1)。
 - 内存占用：LinkedList > ArrayList，LinkedList除了存储数据，还要存储前驱指针和后继指针。
 
-## ArrayList和Vector的区别？
+### ArrayList和Vector的区别？
 - 线程安全：
 	- ArrayList：线程不安全。
 	- Vector：线程安全。
@@ -231,7 +231,7 @@ ConcurrentHashMap
 	- ArrayList：1.5倍。
 	- Vector：2倍。
 
-## HashSet和LinkedHashSet的区别？
+### HashSet和LinkedHashSet的区别？
 - 数据结构：
 	- HashSet：基于HashMap实现。
 	- LinkedHashSet：继承自HashSet，使用HashSet中的构造方法，基于LinkedHashMap实现。
@@ -242,7 +242,7 @@ ConcurrentHashMap
 - 是否允许null：两者都允许一个null键，一个null值（因不可重复，所以只允许一个null值）。
 - 线程安全：两者都是线程不安全的。
 
-## JDK1.7和JDK1.8 中 HashMap 的底层实现有什么区别?
+### JDK1.7和JDK1.8 中 HashMap 的底层实现有什么区别?
 - 数据结构：
 	- JDK1.7：数组+链表。
 	- JDK1.8：数组+链表+红黑树。
@@ -256,10 +256,10 @@ ConcurrentHashMap
 	- JDK1.7：构造方法时初始化。
 	- JDK1.8：第一次put时初始化。
 
-## 为什么用红黑树而不是平衡二叉树（AVL）？
+### 为什么用红黑树而不是平衡二叉树（AVL）？
 AVL 树追求严格平衡，查询性能略优于红黑树，但插入和删除时旋转次数更多。HashMap 场景下插入和查找都频繁，红黑树牺牲少量查询理论性能，换来更少的旋转和更好的插入/删除效率，整体成本更低。此外红黑树的实现在大规模并发库中更通用，维护成本可控。
 
-## HashMap和Hashtable的区别？
+### HashMap和Hashtable的区别？
 - 线程安全：
 	- HashMap：线程不安全。
 	- Hashtable：线程安全。使用synchronized保证线程安全。
@@ -273,7 +273,7 @@ AVL 树追求严格平衡，查询性能略优于红黑树，但插入和删除�
 	- HashMap：数组+链表+红黑树。
 	- Hashtable：数组+链表。不会转红黑树。
 
-## HashMap和ConcurrentHashMap的区别？
+### HashMap和ConcurrentHashMap的区别？
 - 线程安全：
 	- HashMap：线程不安全。
 	- ConcurrentHashMap：线程安全。
@@ -281,7 +281,7 @@ AVL 树追求严格平衡，查询性能略优于红黑树，但插入和删除�
 	- HashMap：允许一个null键，多个null值。
 	- ConcurrentHashMap：不允许有null键、null值。（在并发情况下，无法区分是没有对应key，还是对应key值为null）。
 
-## HashMap在JDK1.7为什么会发生死循环？
+### HashMap在JDK1.7为什么会发生死循环？
 JDK1.7中，HashMap采用头插法插入元素，在扩容时会遍历每个桶中的链表，插入到新链表中，这个过程会导致链表反转。如果在并发情况下，可能会产生环形链表。
 示例：
 - 扩容前：A->B->null

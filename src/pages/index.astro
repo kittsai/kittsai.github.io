@@ -1,0 +1,51 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { Icon } from '@astrojs/starlight/components';
+import { getCollection } from 'astro:content';
+const noteCount = (await getCollection('docs')).filter((entry) => entry.id.startsWith('knowledges/')).length;
+const stats = [
+  ['2026','开始写作','持续记录实践、判断与成长。'],
+  [String(noteCount).padStart(2, '0'),'技术笔记','围绕 Java、数据库与中间件。'],
+  ['01','博客文章','写下技术之外的长期思考。'],
+];
+const notes = [
+  { updated: '持续更新', title: 'Spring 核心知识地图', description: '从依赖注入、Bean 生命周期到事务与 Spring Boot。', tags: ['Java', 'Spring'], href: '/knowledges/java/spring' },
+  { updated: '持续更新', title: '理解 InnoDB，而不只是背结论', description: '索引、事务、MVCC、锁与日志系统的完整联系。', tags: ['Database', 'MySQL'], href: '/knowledges/database/mysql' },
+  { updated: '持续更新', title: 'ElasticSearch 索引与检索', description: '从倒排索引、写入流程到分布式搜索的完整链路。', tags: ['Middleware', 'Search'], href: '/knowledges/middleware/elastic-search' },
+];
+---
+<BaseLayout>
+  <section class="hero">
+    <div class="shell hero-grid">
+      <div class="hero-copy">
+        <p class="eyebrow identity"><strong>Kittsai</strong><i></i> Backend engineer <i></i> Writing since 2026</p>
+        <h1><span>No endorsements.</span><em>I back myself.</em></h1>
+        <p class="intro-lead">一名后端开发者，也是一名持续学习和写作的人。</p>
+        <p class="intro">持续构建，持续学习，也持续记录那些经得起回看的答案。</p>
+        <nav class="social-links" aria-label="联系方式">
+          <a href="https://github.com/kittsai" target="_blank" rel="noreferrer" aria-label="访问 Kittsai 的 GitHub" data-label="GitHub"><Icon name="github" /></a>
+          <a href="mailto:kittsai2099@gmail.com" aria-label="发送邮件给 Kittsai" data-label="Email"><Icon name="email" /></a>
+        </nav>
+      </div>
+      <figure class="hero-art"><img src="/images/hero-workbench-integrated.webp" width="1586" height="992" alt="一位在书桌前记录想法并连接系统模块的开发者插画" fetchpriority="high" decoding="async" draggable="false" /></figure>
+    </div>
+  </section>
+
+  <section class="stats"><div class="shell stats-grid">{stats.map(([value,label,description])=><div><small>{label}</small><strong>{value}</strong><span>{description}</span></div>)}</div></section>
+
+  <section class="writing" id="latest-notes"><div class="shell section notes-shell"><header class="section-head"><div><p class="eyebrow">Latest notes</p><h2>最新笔记</h2></div><a href="/knowledge">阅读全部笔记 →</a></header><div class="note-list">{notes.slice(0,5).map((note)=><a href={note.href}><time>{note.updated}</time><div><h3>{note.title}</h3><p>{note.description}</p><ul aria-label="标签">{note.tags.map((tag)=><li>{tag}</li>)}</ul></div><b aria-hidden="true">→</b></a>)}</div></div></section>
+
+</BaseLayout>
+
+<style>
+  .hero{position:relative;overflow:hidden;border-bottom:1px solid var(--color-border)}
+  .hero-grid{position:relative;min-height:max(650px,calc(100vh - 320px));min-height:max(650px,calc(100svh - 320px));padding:76px 0 42px;display:grid;grid-template-columns:minmax(510px,.86fr) minmax(0,1.14fr);gap:52px;align-items:start}.hero-copy{position:relative;z-index:1;padding-top:20px}.identity{display:flex;align-items:center;gap:11px;color:var(--color-muted)}.identity strong{color:var(--color-accent-strong);font-weight:600}.identity i{width:20px;height:1px;background:var(--color-border-strong)}h1{margin:38px 0 30px;font-family:var(--font-display);font-size:clamp(64px,5vw,88px);font-weight:400;line-height:.98;letter-spacing:-.022em}h1 span,h1 em{display:block;white-space:nowrap}h1 em{color:#526d45;font-family:var(--font-display);font-style:italic;font-weight:400;letter-spacing:-.022em}.intro-lead{max-width:540px;margin:0 0 16px;font-family:var(--font-display);font-size:20px;line-height:1.35}.intro{max-width:545px;margin:0;color:var(--color-muted);font-size:16px;line-height:1.8}.social-links{display:flex;gap:10px;margin-top:30px}.social-links a{position:relative;display:grid;width:38px;height:38px;place-items:center;color:var(--color-muted);border:1px solid var(--color-border-strong);border-radius:50%;transition:.2s ease}.social-links a:hover{color:var(--color-bg);border-color:var(--color-accent-strong);background:var(--color-accent-strong);transform:translateY(-2px)}.social-links a::after{content:attr(data-label);position:absolute;left:50%;top:calc(100% + 8px);padding:4px 7px;color:var(--color-bg);background:var(--color-text);border-radius:4px;font:9px var(--font-mono);letter-spacing:.05em;opacity:0;pointer-events:none;transform:translate(-50%,-3px);transition:.18s}.social-links a:hover::after,.social-links a:focus-visible::after{opacity:1;transform:translate(-50%,0)}.social-links :global(svg){width:17px;height:17px}.hero-art{align-self:center;width:126%;aspect-ratio:1.598/1;margin:4px -22% 0 -4%;pointer-events:none;user-select:none}.hero-art img{display:block;width:100%;height:100%;object-fit:contain;user-select:none}
+  .stats{background:var(--color-bg);border-bottom:1px solid var(--color-border)}.stats-grid{display:grid;grid-template-columns:repeat(3,1fr)}.stats-grid div{padding:30px 32px;border-right:1px solid var(--color-border);text-align:left}.stats-grid div:first-child{padding-left:0}.stats-grid div:last-child{padding-right:0;border:0}.stats small{display:block;color:var(--color-muted);font:9px var(--font-mono);letter-spacing:.16em;text-transform:uppercase}.stats strong{display:block;margin:8px 0 5px;font-family:var(--font-display);font-size:32px;font-weight:400}.stats span{display:block;color:var(--color-muted);font-size:11px}
+  .section{padding-block:110px}.section-head{display:flex;align-items:end;justify-content:space-between;margin-bottom:44px}.section-head h2{margin:14px 0 0;font-size:clamp(25px,2.5vw,32px);font-weight:500;letter-spacing:-.035em}.section-head>a{color:var(--color-muted);font-size:13px;border-bottom:1px solid currentColor;padding-bottom:5px}
+  .writing{color:var(--color-ink);background:var(--color-bg);border-block:1px solid var(--color-border)}.writing .eyebrow{color:var(--color-accent-strong)}.writing .section-head>a{color:var(--color-ink-muted)}.note-list{border-top:1px solid var(--color-rule)}.note-list>a{display:grid;grid-template-columns:150px 1fr 32px;gap:28px;align-items:start;padding:38px 0;border-bottom:1px solid var(--color-rule);transition:.2s}.note-list>a:hover{padding-inline:12px;background:rgba(251,250,246,.42)}.note-list time{padding-top:7px;color:var(--color-ink-muted);font:500 10px var(--font-mono);letter-spacing:.12em;text-transform:uppercase}.note-list h3{margin:0 0 10px;font-family:var(--font-display);font-size:clamp(26px,3vw,34px);font-weight:400;line-height:1.08;letter-spacing:-.025em}.note-list p{max-width:650px;margin:0;color:var(--color-ink-muted);font-size:14px;line-height:1.65}.note-list ul{display:flex;flex-wrap:wrap;gap:16px;margin:18px 0 0;padding:0;list-style:none}.note-list li{color:var(--color-ink-muted);font:500 9px var(--font-mono);letter-spacing:.13em;text-transform:uppercase}.note-list>a>b{align-self:center;font-family:var(--font-display);font-size:28px;font-weight:400;transition:transform .2s}.note-list>a:hover>b{transform:translateX(4px)}
+  @media(max-width:900px){.hero-grid{min-height:auto;grid-template-columns:1fr;gap:24px;padding-block:76px 36px}.hero-copy{padding-top:0}.hero-art{width:112%;margin:-12px -6% 0}}
+  #latest-notes{scroll-margin-top:72px}.notes-shell{width:min(980px,calc(100% - 48px))}
+  .hero{background:var(--color-bg)}
+  @media(max-width:640px){.hero-grid{padding-block:58px 26px}.identity{gap:7px;flex-wrap:wrap}.identity i{width:10px}h1{font-size:clamp(44px,12.8vw,58px)}h1 span,h1 em{white-space:normal}.intro-lead{font-size:17px}.hero-art{margin:-4px -8% -4px;width:116%}.stats-grid{grid-template-columns:1fr}.stats-grid div,.stats-grid div:first-child,.stats-grid div:last-child{padding:25px 8px;border-right:0;border-bottom:1px solid var(--color-border);text-align:left}.stats-grid div:last-child{border-bottom:0}.section{padding-block:75px}.notes-shell{width:min(100% - 30px,980px)}.section-head>a{font-size:11px}.note-list>a{grid-template-columns:34px 1fr 20px;gap:10px}.note-list p{display:none}}
+  @media(max-width:640px){.note-list>a{grid-template-columns:1fr 20px;gap:14px;padding:28px 0}.note-list time{grid-column:1/-1;padding:0}.note-list h3{font-size:27px}.note-list p{display:block;font-size:13px}.note-list ul{gap:12px;margin-top:14px}.note-list>a>b{grid-column:2;grid-row:2/5}}
+</style>

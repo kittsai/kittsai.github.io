@@ -1,20 +1,19 @@
 ---
 title: MySQL
-category: 中间件
+category: 数据库
 description: MySQL 核心知识：索引、事务、锁、MVCC 等。
 tableOfContents:
-  minHeadingLevel: 1
+  minHeadingLevel: 2
   maxHeadingLevel: 5
 ---
 
 
 
-# MySQL
 
 MySQL是开源关系型数据库管理系统，使用客户端-服务端模型，支持可插拔存储引擎。
 
 
-# 整体架构
+## 整体架构
 
 整体分为两层：Server层 和 存储引擎层。
 
@@ -28,14 +27,14 @@ Server层：
 - InnoDB：默认引擎，支持ACID、行锁、MVCC、外键等。
 - MyISAM：早期默认引擎，不支持事务、表级锁等。
 
-# InnoDB引擎
+## InnoDB引擎
 
 - Buffer Pool：数据与索引的缓存池。
 - Log Buffer：redo log的缓存。
 
 ![InnoDB内存结构](/images/InnoDB内存结构.png)
 
-### Buffer Pool
+#### Buffer Pool
 
 Buffer Pool 是 InnoDB 最大的内存区域，以 **页（Page，默认 16KB）** 为单位缓存数据。所有对数据的读写操作，都会优先经过它。
 
@@ -54,7 +53,7 @@ Buffer Pool 内部通过三张链表，精密管理所有缓存页的状态：
 - **LRU 链表**：存储"已被使用的页"，并按最近最少使用排序。InnoDB 将 LRU 链表分为 **Young 区（热数据）** 和 **Old 区（冷数据）**。新读入的页不会直接插入 Young 区头部，而是插入 Old 区头部。只有在 Old 区存活足够时间并被再次访问时，才会晋升到 Young 区。这有效防止了全表扫描把真正的热数据冲走。
 - **Flush 链表**：存储"脏页"（内存中被修改过，但还没刷入磁盘的页），按第一次变脏的时间排序。后台线程会按此链表顺序将脏页写入磁盘，并更新 LSN（日志序列号）。
 
-## Log Buffer
+### Log Buffer
 
 Log Buffer 是一块独立于 Buffer Pool 的内存区域，专门缓存**redo log 条目**。
 
@@ -65,7 +64,7 @@ Log Buffer 是一块独立于 Buffer Pool 的内存区域，专门缓存**redo l
     3. **后台线程每秒刷盘**。
 - **大小**：默认 16MB，对于写入密集的场景可适当调大，减少刷盘频率。
 
-## 内存与磁盘的协同工作流
+### 内存与磁盘的协同工作流
 
 读请求：
 1. 查询 Buffer Pool，命中则直接返回。
@@ -77,7 +76,7 @@ Log Buffer 是一块独立于 Buffer Pool 的内存区域，专门缓存**redo l
 3. 修改对应的 undo 页，同样产生 redo 条目，undo 页也变成脏页。
 4. 事务提交时，Log Buffer 中的 redo 刷盘，事务完成。脏页则留待后台线程择机刷盘，实现**WAL（Write-Ahead Log）**。
 
-# 索引
+## 索引
 
 InnoDB索引的数据结构为B+树，包含聚簇索引、非聚簇索引。
 
@@ -93,11 +92,11 @@ InnoDB索引的数据结构为B+树，包含聚簇索引、非聚簇索引。
 为什么使用B+树，而不是B树？
 - 高度低、磁盘IO少、叶子双向链表支持范围查询和排序。
 
-# 事务
+## 事务
 
 事务是保证一组数据库操作，要么全部成功、要么全部失败。在MySQL中，事务是在存储引擎层中实现的。MyISAM引擎不支持事务，InnoDB支持事务。
 
-## 事务特性
+### 事务特性
 
 ACID：
 - 原子性：undo log保障。
@@ -105,7 +104,7 @@ ACID：
 - 隔离性：锁、MVCC保障。
 - 持久性：redo log保障。
 
-## 隔离级别
+### 隔离级别
 
 - 读未提交：事务还未提交，就可能被其他事务看到。（直接返回记录上的最新值，不创建Read View）
 - 读已提交：事务必须提交后，才能被其他事务看到。（每次执行SQL时创建Read View）
@@ -123,7 +122,7 @@ ACID：
 - 不可重复读：同一个事务内，两次读取同一行数据，值不一样。
 - 幻读：同一个事务内，两次查询同一个范围的数据，行数不一样。
 
-# MVCC
+## MVCC
 
 实现原理：
 - **隐藏字段**：每行记录有最新修改的事务ID：`DB_TRX_ID` 和 指向undo log的版本链：`DB_ROLL_PTR`。
@@ -134,7 +133,7 @@ ACID：
 
 ![MVCC](/images/MVCC.png)
 
-## 当前读
+### 当前读
 
 `update`、`delete`、`select xxx for update`这类**更新操作**会读取最新的数据版本，称为**当前读**。
 在执行更新操作时，会根据具体SQL判断是否需要加行锁、间隙锁、临键锁，防止其他事务更改当前行或在数据间隙插入数据。
@@ -155,7 +154,7 @@ ACID：
 ![临键锁](/images/MySQL-临键锁.png)
 
 
-# 锁
+## 锁
 
 | 层级               | 锁类型                    | 本质           |
 | ---------------- | ---------------------- | ------------ |
@@ -168,28 +167,28 @@ ACID：
 
 死锁：不是锁，是一种并发事务互相等待锁资源造成的循环等待现象。
 
-# redo log & undo log & binlog
+## redo log & undo log & binlog
 
 - redo log 和 undo log 是InnoDB存储引擎层独有的，物理记录数据页变更或旧数据。
 - binlog是Server层产生的，与引擎无关，逻辑记录SQL或行变化。
 
-![redolog undolog binlog](/images/MySQL-redolog&undolog&binlog.png)
+![redolog undolog binlog](/images/MySQL-redolog-undolog-binlog.png)
 
-## redo log
+### redo log
 
 redo log，叫做重做日志，是物理逻辑日志，用于记录"在某页偏移量做了某修改"，它记录了所有的数据页（包括undo log）的物理变更。
 
 WAL机制：先写日志，再修改buffer pool，脏页后台刷盘。循环写。
 
-## undo log
+### undo log
 
 undo log，叫做回滚日志，是逻辑日志，记录行的旧版本。用于事务回滚和构建MVCC版本链，保证原子性和一致性。
 
-## binlog
+### binlog
 
 binlog，叫作归档日志，是Server层逻辑日志，记录SQL或行变化，用于主从复制和基于时间点的恢复。
 
-### 两阶段提交
+#### 两阶段提交
 
 两阶段提交，用于保证redo log 和binlog在事务提交时的一致性：
 - prepare阶段：写入redo log，并标记prepare状态。
