@@ -1,0 +1,78 @@
+baseURL: https://kittsai.github.io/
+locale: zh-cn
+defaultContentLanguage: zh
+title: Kittsai
+theme: [PaperMod]
+enableRobotsTXT: true
+pagination:
+  pagerSize: 5
+summaryLength: 72
+frontmatter:
+  date: [publishedAt, date]
+
+taxonomies:
+  tag: tags
+  category: categories
+
+outputs:
+  home: [HTML, RSS, JSON]
+
+menus:
+  main:
+    - { name: 文章, url: /writing/, weight: 10 }
+    - { name: 归档, url: /archive/, weight: 20 }
+    - { name: 搜索, url: /search/, weight: 30 }
+    - { name: 标签, url: /tags/, weight: 40 }
+    - { name: 笔记, url: /knowledge/, weight: 50 }
+
+params:
+  env: production
+  author: Kittsai
+  label:
+    text: Kittsai
+  description: Kittsai 的个人网站，记录技术学习、工程实践和个人思考。
+  defaultTheme: light
+  disableThemeToggle: false
+  mainSections: [writing]
+  ShowReadingTime: true
+  ShowWordCount: false
+  ShowShareButtons: false
+  ShowPostNavLinks: true
+  ShowBreadCrumbs: false
+  ShowCodeCopyButtons: true
+  ShowRssButtonInSectionTermList: true
+  ShowPageNums: true
+  ShowToc: true
+  TocOpen: false
+  hideFooter: false
+  homeInfoParams:
+    Title: 👋 欢迎来到 Kittsai
+    Content: 你好，我是一名后端开发者。我在这里记录技术学习、工程实践，以及那些值得慢慢想清楚的问题。
+  socialIcons:
+    - { name: github, url: https://github.com/kittsai }
+  assets:
+    favicon: /favicon.svg
+    favicon16x16: /favicon.svg
+    favicon32x32: /favicon.svg
+
+markup:
+  goldmark:
+    renderer:
+      unsafe: false
+  highlight:
+    noClasses: false
+    codeFences: true
+    guessSyntax: true
+
+minify:
+  disableXML: true
+  minifyOutput: true
+
+cascade:
+  - params:
+      hideMeta: true
+      ShowReadingTime: false
+      ShowPostNavLinks: false
+      ShowToc: true
+    target:
+      path: /knowledges/**

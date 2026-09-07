@@ -1,0 +1,7 @@
+---
+title: 搜索
+layout: search
+placeholder: 输入关键词搜索文章和笔记
+url: /search/
+summary: search
+---

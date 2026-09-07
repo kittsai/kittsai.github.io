@@ -1,0 +1,68 @@
+{{ define "main" }}
+{{ $notes := where .Site.RegularPages "Section" "knowledges" }}
+{{ $groups := $notes.GroupByParam "category" }}
+<article class="post-single knowledge-index">
+  <header class="page-header">
+    <h1>{{ .Title }}</h1>
+    {{ with .Description }}<p class="page-description">{{ . }}</p>{{ end }}
+  </header>
+
+  <nav class="note-tabs" aria-label="笔记分类">
+    <a class="note-tab active" href="{{ .RelPermalink }}" data-cat="all">全部<span class="note-tab-count">{{ len $notes }}</span></a>
+    {{ range $groups }}
+      <a class="note-tab" href="{{ $.RelPermalink }}?cat={{ .Key | urlquery }}" data-cat="{{ .Key }}">{{ .Key }}<span class="note-tab-count">{{ len .Pages }}</span></a>
+    {{ end }}
+  </nav>
+
+  {{ range $groups }}
+    <section class="note-group" data-category="{{ .Key }}">
+      <h2>{{ .Key }}</h2>
+      <div class="note-list">
+        {{ range .Pages }}
+          <a class="note-link" href="{{ .RelPermalink }}">
+            <strong>{{ .Title }}</strong>
+            {{ with .Description }}<span>{{ . }}</span>{{ end }}
+          </a>
+        {{ end }}
+      </div>
+    </section>
+  {{ end }}
+</article>
+
+<script>
+(function () {
+  var container = document.querySelector('.knowledge-index');
+  if (!container) return;
+  var tabs = container.querySelectorAll('.note-tab[data-cat]');
+  var groups = container.querySelectorAll('.note-group[data-category]');
+  if (!tabs.length) return;
+
+  function apply(cat) {
+    tabs.forEach(function (t) {
+      t.classList.toggle('active', t.dataset.cat === cat);
+    });
+    groups.forEach(function (g) {
+      g.hidden = cat !== 'all' && g.dataset.category !== cat;
+    });
+    container.classList.toggle('filtered', cat !== 'all');
+  }
+
+  var param = new URLSearchParams(location.search).get('cat');
+  var valid = false;
+  tabs.forEach(function (t) { if (t.dataset.cat === param) valid = true; });
+  apply(valid ? param : 'all');
+
+  tabs.forEach(function (t) {
+    t.addEventListener('click', function (e) {
+      e.preventDefault();
+      var cat = t.dataset.cat;
+      var url = new URL(location.href);
+      if (cat === 'all') url.searchParams.delete('cat');
+      else url.searchParams.set('cat', cat);
+      history.replaceState(null, '', url);
+      apply(cat);
+    });
+  });
+})();
+</script>
+{{ end }}

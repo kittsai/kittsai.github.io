@@ -1,0 +1,139 @@
+.header {
+  position: static;
+  background: transparent;
+  border-bottom: 0;
+}
+
+.logo .site-title {
+  display: flex;
+  align-items: center;
+  column-gap: 0.55rem;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+@media (min-width: 1050px) {
+  .header-nav {
+    justify-content: flex-end;
+  }
+
+  .logo {
+    position: fixed;
+    top: 0;
+    left: calc((100vw - var(--main-width)) / 2 - 138px);
+    z-index: 100;
+  }
+}
+
+#menu .active {
+  text-decoration: none;
+  border-bottom: 2px solid currentColor;
+}
+
+.first-entry.home-info {
+  min-height: auto;
+  margin-top: 0;
+  margin-bottom: 32px;
+}
+
+.home-info .entry-header h1 {
+  font-size: 32px;
+}
+
+.home-info .entry-content {
+  margin-top: 4px;
+}
+
+.home-info .entry-footer {
+  margin-top: 12px;
+}
+
+.page-description {
+  margin-top: 10px;
+  color: var(--secondary);
+  line-height: 1.7;
+}
+
+.note-group {
+  margin-top: 36px;
+}
+
+.note-group h2 {
+  margin-bottom: 12px;
+  font-size: 22px;
+}
+
+.note-list {
+  border-top: 1px solid var(--border);
+}
+
+.note-link {
+  display: block;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.note-link strong,
+.note-link span {
+  display: block;
+}
+
+.note-link span {
+  margin-top: 4px;
+  color: var(--secondary);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.note-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 24px 0 8px;
+}
+
+.note-tab {
+  display: inline-block;
+  padding: 5px 16px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--secondary);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.note-tab:hover {
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+.note-tab.active {
+  color: var(--theme);
+  background: var(--primary);
+  border-color: var(--primary);
+  font-weight: 500;
+}
+
+.note-tab-count {
+  margin-left: 4px;
+  font-size: 12px;
+  opacity: 0.75;
+}
+
+.note-group[hidden] {
+  display: none;
+}
+
+.knowledge-index.filtered .note-group h2 {
+  display: none;
+}
+
+@media (max-width: 700px) {
+  .first-entry.home-info {
+    margin-bottom: 24px;
+  }
+
+  .home-info .entry-header h1 {
+    font-size: 28px;
+  }
+}
